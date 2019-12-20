@@ -7,7 +7,7 @@ alias:
     parallelism: 1
     working_directory: /go/src/github.com/ahmedkamals/colorize
     docker:
-      - image: circleci/golang:1.13.4
+      - image: circleci/golang:1.13.5
         environment:
           GOPATH: "/go"
           GO111MODULE: "on"
