@@ -53,7 +53,7 @@ func main() {
 	println(sample(colorized))
 }
 
-func sample(colorized *colorize.Colorable) string {
+func sample(colorized colorize.Colorable) string {
 	sample := make([]string, 0)
 	for colorIndex := 0; colorIndex <= 255; colorIndex++ {
 		red := (colorIndex + 5) % 256

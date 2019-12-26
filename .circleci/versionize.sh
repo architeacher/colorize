@@ -17,13 +17,13 @@ versionize() {
     local patch="$4"
     local versionFile="$5"
 
-    if echo "$commitMessage" | grep "\[\(major\|MAJOR\)\]" > /dev/null; then
+    if echo "$commitMessage" | grep -iqE "\[major\]"; then
       major=$((major+1))
       echo "v$major.0.0" > "$versionFile"
-    elif echo "$commitMessage" | grep "\[\(minor\|MINOR\)\]" > /dev/null; then
+    elif echo "$commitMessage" | grep -iqE "\[minor\]"; then
       minor=$((minor+1))
       echo "v$major.$minor.0" > "$versionFile"
-    elif echo "$commitMessage" | grep "\[\(patch\|PATCH\)\]" > /dev/null; then
+    elif echo "$commitMessage" | grep -iqE "\[patch\]"; then
       patch=$((patch+1))
       echo "v$major.$minor.$patch" > "$versionFile"
     fi

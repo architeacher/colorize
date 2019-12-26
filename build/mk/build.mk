@@ -200,11 +200,11 @@ go-generate: ## to generate Go related files.
 
 go-install: update-pkg-version ## to install the Go related/dependent commands and packages.
 	@printf "$(OK_CLR)$(MSG_PRFX) Installing Go related dependencies$(MSG_SFX)$(NO_CLR)\n"
-	@$(GO) install                                                               \
-	    -ldflags "-X $(PKG_NAMESPACE)/$(APP_DIR)/pkg/version.VERSION=${VERSION}" \
-	    -installsuffix "static"                                                  \
-	    -v $(GO_FLAGS)                                                           \
-	    -tags $(GO_TAGS)                                                         \
+	@$(GO) install                                                               	  \
+	    -ldflags "-X $(PKG_NAMESPACE)/$(APP_DIR_NAME)/pkg/version.VERSION=${VERSION}" \
+	    -installsuffix "static"                                                  	  \
+	    -v $(GO_FLAGS)                                                           	  \
+	    -tags $(GO_TAGS)                                                         	  \
 	    $(SRC_PKGS) 2>&1
 
 install: ## to install the generated binary.
@@ -227,10 +227,10 @@ uninstall: ## to uninstall generated binary.
 
 update-pkg-version: ## to update package version.
 	@printf "$(INFO_CLR)$(MSG_PRFX) Updating Go package version$(MSG_SFX)$(NO_CLR)\n"
-    ifneq ($(wildcard $(PKG_TEMPLATE_DIR)/$(PKG_TEMPLATE)),)
-		@cp $(PKG_TEMPLATE_DIR)/$(PKG_TEMPLATE) $(PKG_TEMPLATE_DIR)/version.go 2>&1
+    ifneq ($(wildcard $(PKG_VERSION_DIR)/$(PKG_VERSION_TEMPLATE)),)
+		@cp $(PKG_VERSION_DIR)/$(PKG_VERSION_TEMPLATE) $(PKG_VERSION_DIR)/version.go 2>&1
 		@echo $(VERSION) > $(VERSION_FILE) 2>&1
-		@$(call replaceInFile,{{VERSION}},$(VERSION),$(PKG_TEMPLATE_DIR)/version.go)
+		@$(call replaceInFile,{{VERSION}},$(VERSION),$(PKG_VERSION_DIR)/version.go)
     endif
 
 version:  ## to get the current version.

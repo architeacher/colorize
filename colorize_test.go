@@ -83,8 +83,8 @@ func TestWrap(t *testing.T) {
 			expected: "\x1b[38;2;255;255;255;48;2;88;88;88mOutput this in gray background and white color.\x1b[0m",
 		},
 		{
-			id:    "Should output in bold italic gray background and white color.",
-			input: "Output this in bold italic gray background and white color.",
+			id:    "Should output in underline crossed out gray background and white color.",
+			input: "Output this in underline crossed out gray background and white color.",
 			appliedStyle: Style{
 				Foreground: &ColorValue{
 					Red:   255,
@@ -96,9 +96,9 @@ func TestWrap(t *testing.T) {
 					Green: 88,
 					Blue:  88,
 				},
-				Font: []FontEffect{Bold, Italic},
+				Font: []FontEffect{Underline, CrossedOut},
 			},
-			expected: "\x1b[38;2;255;255;255;48;2;88;88;88;1;3mOutput this in bold italic gray background and white color.\x1b[0m",
+			expected: "\x1b[38;2;255;255;255;48;2;88;88;88;4;9mOutput this in underline crossed out gray background and white color.\x1b[0m",
 		},
 	}
 
@@ -184,13 +184,13 @@ func TestDirectColors(t *testing.T) {
 	testCases := []struct {
 		id           string
 		input        string
-		appliedStyle func(*Colorable, string) string
+		appliedStyle func(Colorable, string) string
 		expected     string
 	}{
 		{
 			id:    "Should output in black color.",
 			input: "Output this in black color.",
-			appliedStyle: func(colorable *Colorable, str string) string {
+			appliedStyle: func(colorable Colorable, str string) string {
 				return colorable.Black(str)
 			},
 			expected: "\x1b[38;2;0;0;0mOutput this in black color.\x1b[0m",
@@ -198,7 +198,7 @@ func TestDirectColors(t *testing.T) {
 		{
 			id:    "Should output in blue color.",
 			input: "Output this in blue color.",
-			appliedStyle: func(colorable *Colorable, str string) string {
+			appliedStyle: func(colorable Colorable, str string) string {
 				return colorable.Blue(str)
 			},
 			expected: "\x1b[38;2;0;0;255mOutput this in blue color.\x1b[0m",
@@ -206,7 +206,7 @@ func TestDirectColors(t *testing.T) {
 		{
 			id:    "Should output in cyan color.",
 			input: "Output this in cyan color.",
-			appliedStyle: func(colorable *Colorable, str string) string {
+			appliedStyle: func(colorable Colorable, str string) string {
 				return colorable.Cyan(str)
 			},
 			expected: "\x1b[38;2;0;255;255mOutput this in cyan color.\x1b[0m",
@@ -214,7 +214,7 @@ func TestDirectColors(t *testing.T) {
 		{
 			id:    "Should output in gray color.",
 			input: "Output this in gray color.",
-			appliedStyle: func(colorable *Colorable, str string) string {
+			appliedStyle: func(colorable Colorable, str string) string {
 				return colorable.Gray(str)
 			},
 			expected: "\x1b[38;2;128;128;128mOutput this in gray color.\x1b[0m",
@@ -222,7 +222,7 @@ func TestDirectColors(t *testing.T) {
 		{
 			id:    "Should output in green color.",
 			input: "Output this in green color.",
-			appliedStyle: func(colorable *Colorable, str string) string {
+			appliedStyle: func(colorable Colorable, str string) string {
 				return colorable.Green(str)
 			},
 			expected: "\x1b[38;2;0;255;0mOutput this in green color.\x1b[0m",
@@ -230,7 +230,7 @@ func TestDirectColors(t *testing.T) {
 		{
 			id:    "Should output in magenta color.",
 			input: "Output this in magenta color.",
-			appliedStyle: func(colorable *Colorable, str string) string {
+			appliedStyle: func(colorable Colorable, str string) string {
 				return colorable.Magenta(str)
 			},
 			expected: "\x1b[38;2;255;0;255mOutput this in magenta color.\x1b[0m",
@@ -238,7 +238,7 @@ func TestDirectColors(t *testing.T) {
 		{
 			id:    "Should output in orange color.",
 			input: "Output this in orange color.",
-			appliedStyle: func(colorable *Colorable, str string) string {
+			appliedStyle: func(colorable Colorable, str string) string {
 				return colorable.Orange(str)
 			},
 			expected: "\x1b[38;2;255;165;0mOutput this in orange color.\x1b[0m",
@@ -246,7 +246,7 @@ func TestDirectColors(t *testing.T) {
 		{
 			id:    "Should output in red color.",
 			input: "Output this in red color.",
-			appliedStyle: func(colorable *Colorable, str string) string {
+			appliedStyle: func(colorable Colorable, str string) string {
 				return colorable.Red(str)
 			},
 			expected: "\x1b[38;2;255;0;0mOutput this in red color.\x1b[0m",
@@ -269,8 +269,8 @@ func captureOutput(f func(output *os.File)) string {
 	os.Stdout = writer
 
 	f(writer)
-
 	writer.Close()
+
 	out, _ := ioutil.ReadAll(reader)
 	os.Stdout = rescueStdout
 

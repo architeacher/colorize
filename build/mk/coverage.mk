@@ -8,7 +8,7 @@ define coverPackage
 	    -covermode=$(COVERAGE_MODE)              \
 	    -coverprofile $(COVERAGE_PATH)/$(1).part \
 	    $(GO_FLAGS)                              \
-	    ./$(APP_DIR)/$(1) 2>&1;
+	    $(APP_DIR)/$(1) 2>&1;
 endef
 
 # Goveralls binary.
@@ -18,7 +18,6 @@ all-coverage: cover coverage-browse
 
 $(COVERAGE_HTML): $(COVERAGE_PROFILE)
 	@echo "$(INFO_CLR)$(MSG_PRFX) Coverage HTML export$(MSG_SFX)$(NO_CLR)"
-	@if [ ! -d $(COVERAGE_PATH) ] ; then $(MAKE) $(COVERAGE_PATH) 2>&1 ; fi
 	@$(GO) tool cover -html="$(COVERAGE_PROFILE)" -o "$(COVERAGE_HTML)" $(GO_FLAGS) 2>&1
 
 $(COVERAGE_PROFILE):
