@@ -51,7 +51,7 @@ profile: $(BENCH_TESTS_PATH) ## to get bench mark profiles.
 	    -parallel $(PARALLEL_TESTS)             \
 	    -timeout $(TEST_TIMEOUT)                \
 	    -tags bench                             \
-	    $(GO_FLAGS) ./$(APP_DIR) 2>&1
+	    $(GO_FLAGS) $(APP_DIR) 2>&1
 	@$(GO) tool pprof --svg $(BENCH_TESTS_PATH)/test.bin $(BENCH_TESTS_PATH)/cpu.out > $(BENCH_TESTS_PATH)/cpu.svg 2>&1
 	@$(GO) tool pprof --svg $(BENCH_TESTS_PATH)/test.bin $(BENCH_TESTS_PATH)/mem.out > $(BENCH_TESTS_PATH)/mem.svg 2>&1
 

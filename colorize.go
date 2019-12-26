@@ -11,7 +11,7 @@ type (
 	// Colorable interface for console colors.
 	Colorable struct {
 		output io.Writer
-		style  *Style
+		style  Style
 	}
 
 	// ColorValue for the RGB value.
@@ -33,10 +33,10 @@ type (
 )
 
 const (
-	// ResetFormat for single value, e.g. \x1b[96m
-	ResetFormat = "\u001b[%dm"
-	// FormatMultiValue for multiple values, e.g. \x1b[1;96m
-	FormatMultiValue = "\x1b[%sm"
+	// resetFormatPattern for single value, e.g. \x1b[96m
+	resetFormatPattern = "\u001b[%dm"
+	// multiValueFormatPattern for multiple values, e.g. \x1b[1;96m
+	multiValueFormatPattern = "\x1b[%sm"
 
 	foreground = 38
 	background = 48
@@ -58,38 +58,38 @@ const (
 )
 
 // NewColorable allocates and returns a new Colorable.
-func NewColorable(output io.Writer) *Colorable {
-	return &Colorable{
+func NewColorable(output io.Writer) Colorable {
+	return Colorable{
 		output: output,
-		style:  &Style{},
+		style:  Style{},
 	}
 }
 
 // Set a style for the next output operations.
-func (c *Colorable) Set(style Style) *Colorable {
-	fmt.Fprintf(c.output, c.format(style))
+func (c Colorable) Set(style Style) Colorable {
+	fmt.Fprint(c.output, c.format(style))
 
 	return c
 }
 
 // Reset the color value to the default.
-func (c *Colorable) Reset() *Colorable {
-	fmt.Fprintf(c.output, resetFormat())
+func (c Colorable) Reset() Colorable {
+	fmt.Fprint(c.output, resetFormat())
 
 	return c
 }
 
 // Wrap wraps a passed a string with a color values.
-func (c *Colorable) Wrap(str string, style Style) string {
+func (c Colorable) Wrap(str string, style Style) string {
 	return fmt.Sprintf("%s%s%s", c.format(style), str, resetFormat())
 }
 
-func (c *Colorable) format(style Style) string {
-	return fmt.Sprintf(FormatMultiValue, sequence(style))
+func (c Colorable) format(style Style) string {
+	return fmt.Sprintf(multiValueFormatPattern, sequence(style))
 }
 
 func resetFormat() string {
-	return fmt.Sprintf(ResetFormat, Normal)
+	return fmt.Sprintf(resetFormatPattern, Normal)
 }
 
 func sequence(style Style) string {
@@ -125,42 +125,42 @@ func sequence(style Style) string {
 }
 
 // Black color effect.
-func (c *Colorable) Black(str string) string {
+func (c Colorable) Black(str string) string {
 	return c.Wrap(str, getForegroundStyle(0, 0, 0))
 }
 
 // Blue color effect.
-func (c *Colorable) Blue(str string) string {
+func (c Colorable) Blue(str string) string {
 	return c.Wrap(str, getForegroundStyle(0, 0, 255))
 }
 
 // Cyan color effect.
-func (c *Colorable) Cyan(str string) string {
+func (c Colorable) Cyan(str string) string {
 	return c.Wrap(str, getForegroundStyle(0, 255, 255))
 }
 
 // Gray color effect.
-func (c *Colorable) Gray(str string) string {
+func (c Colorable) Gray(str string) string {
 	return c.Wrap(str, getForegroundStyle(128, 128, 128))
 }
 
 // Green color effect.
-func (c *Colorable) Green(str string) string {
+func (c Colorable) Green(str string) string {
 	return c.Wrap(str, getForegroundStyle(0, 255, 0))
 }
 
 // Magenta color effect.
-func (c *Colorable) Magenta(str string) string {
+func (c Colorable) Magenta(str string) string {
 	return c.Wrap(str, getForegroundStyle(255, 0, 255))
 }
 
 // Orange color effect.
-func (c *Colorable) Orange(str string) string {
+func (c Colorable) Orange(str string) string {
 	return c.Wrap(str, getForegroundStyle(255, 165, 0))
 }
 
 // Red color effect.
-func (c *Colorable) Red(str string) string {
+func (c Colorable) Red(str string) string {
 	return c.Wrap(str, getForegroundStyle(255, 0, 0))
 }
 

@@ -6,7 +6,7 @@ It might take a little while for us to get around to reviewing it. Sorry for
 the delay.
 
 To help things go as quickly as possible, please:
-- read CODE_OF_CONDUCT.md
+- read CODE-OF-CONDUCT.md
 - keep the PR as small and focused as you can
 - follow the coding guidelines found in CONTRIBUTING.md
 -->
@@ -15,7 +15,7 @@ To help things go as quickly as possible, please:
 
 ## What does this do
 
-<!-- brief explanation of the functionality this provides. -->
+<!-- a brief explanation of the functionality this provides. -->
 
 ## Why is it a good idea
 
@@ -31,12 +31,12 @@ To help things go as quickly as possible, please:
 
 ## Remarks
 
-<!-- things you're uncertain about that you want the reviewer to focus on. -->
+<!-- things you're uncertain about what you want the reviewer to focus on. -->
 
 ## Release note
 
 <!--  Write your release note:
-1. Enter your extended release note in the below block. If the PR requires
+1. Enter your extended-release note in the below block. If the PR requires
 additional action from users switching to the new release, include the string
 "action required".
 2. If no release note is required, just write "NONE".

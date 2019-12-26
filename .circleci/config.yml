@@ -4,10 +4,11 @@ alias:
   default: &default
     environment:
       PROJECT_NAME: "Colorize"
-    parallelism: 1
+      COVERAGE: true
+      VALIDATE: true
     working_directory: /go/src/github.com/ahmedkamals/colorize
     docker:
-      - image: circleci/golang:1.13.4
+      - image: circleci/golang:1.13.5
         environment:
           GOPATH: "/go"
           GO111MODULE: "on"
@@ -16,7 +17,7 @@ alias:
           GITHUB_API: "https://api.github.com/"
           DOCKER_USER: "ahmedkamals"
   setup_remote_docker: &setup_remote_docker
-    version: 19.03.4-ce
+    version: 19.03.5-ce
     docker_layer_caching: true
 
 jobs:
@@ -37,7 +38,7 @@ jobs:
       - run:
           name: Validation tests
           command: |
-            make get-deps validate
+            if [ "$VALIDATE" == true ]; then make get-deps validate; else echo 'skipping validation.'; fi
       - save_cache:
           key: go-cache-{{ .Branch }}-{{ checksum "go.sum" }}-{{ .Revision }}
           paths:
@@ -57,9 +58,10 @@ jobs:
           name: Unit tests
           command: |
             make unit coverage-html
+            if [ "$COVERAGE" == true ]; then bash <(curl -s https://codecov.io/bash) -f .go/tests/coverage/profile.out || true ; else echo 'skipping sending coverage.'; fi
       - store_artifacts:
           path: .go/tests/coverage/index.html
-          destination: coverage.html
+          destination: coverage/profile.html
 
   versioning:
     <<: *default
