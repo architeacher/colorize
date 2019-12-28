@@ -6,7 +6,7 @@ set -euo pipefail
 
 mkdir -p "$HOME/.ssh/" && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 
-LAST_COMMIT=$(git log -1 --pretty=%B)
+LAST_COMMIT_MESSAGE=$(git log -1 --pretty=%B)
 VERSION_FILE="./.version"
 touch "$VERSION_FILE"
 
@@ -30,12 +30,12 @@ versionize() {
 }
 
 if VERSION=$(git describe --abbrev=0 --tags 2> /dev/null) && [[ (-n "$(git diff "$VERSION")") || (-z "$VERSION") ]]; then
-  VERSION=${VERSION:-'0.0.0'}
+  VERSION=${VERSION:-'0.0.0'}; VERSION=${VERSION#"v"}
   MAJOR=${VERSION%%.*}; VERSION=${VERSION#*.}
   MINOR=${VERSION%%.*}; VERSION=${VERSION#*.}
   PATCH=${VERSION%%.*}; VERSION=${VERSION#*.}
 
-  versionize "$LAST_COMMIT" "$MAJOR" "$MINOR" "$PATCH" "$VERSION_FILE"
+  versionize "$LAST_COMMIT_MESSAGE" "$MAJOR" "$MINOR" "$PATCH" "$VERSION_FILE"
 else
-  versionize "$LAST_COMMIT" 0 0 0 "$VERSION_FILE"
+  versionize "$LAST_COMMIT_MESSAGE" 0 0 0 "$VERSION_FILE"
 fi
