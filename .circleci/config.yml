@@ -8,7 +8,7 @@ alias:
       VALIDATE: true
     working_directory: /go/src/github.com/ahmedkamals/colorize
     docker:
-      - image: circleci/golang:1.13.5
+      - image: circleci/golang:1.14.4
         environment:
           GOPATH: "/go"
           GO111MODULE: "on"
