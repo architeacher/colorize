@@ -1,0 +1,27 @@
+# Compiled binaries, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+*.dll
+*.dylib
+*.exe
+
+# Test binary, deploy with `go test -c`
+*.test
+*.prof
+
+# Output of the go coverage tool, log files
+*.out
+*.log
+
+# IDEs
+.idea/
+*.iml
+
+.artifacts/
+.data/
+.docker*
+!.dockerignore
+.env
+.version
+.go
