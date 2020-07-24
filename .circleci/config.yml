@@ -1,0 +1,122 @@
+version: 2
+
+alias:
+  default: &default
+    environment:
+      PROJECT_NAME: "Colorize"
+      COVERAGE: true
+      VALIDATE: true
+    working_directory: /go/src/github.com/ahmedkamals/colorize
+    docker:
+      - image: circleci/golang:1.14.6
+        environment:
+          GOPATH: "/go"
+          GO111MODULE: "on"
+          REPO_NAME: "ahmedkamals"
+          IMAGE_NAME: "colorize"
+          GITHUB_API: "https://api.github.com/"
+          DOCKER_USER: "ahmedkamals"
+  setup_remote_docker: &setup_remote_docker
+    version: 19.03.5-ce
+    docker_layer_caching: true
+
+jobs:
+  linting:
+    <<: *default
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-cache-{{ .Branch }}-{{ checksum "go.sum" }}-{{ .Revision }}
+            - go-cache-{{ .Branch }}-{{ checksum "go.sum" }}
+            - go-cache-{{ .Branch }}
+            - go-cache
+      - run:
+          name: Vendor dependencies
+          command: |
+            go mod download
+      - run:
+          name: Validation tests
+          command: |
+            if [ "$VALIDATE" == true ]; then make get-deps validate; else echo 'skipping validation.'; fi
+      - save_cache:
+          key: go-cache-{{ .Branch }}-{{ checksum "go.sum" }}-{{ .Revision }}
+          paths:
+            - ./vendor
+
+  unit:
+    <<: *default
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-cache-{{ .Branch }}-{{ checksum "go.sum" }}-{{ .Revision }}
+            - go-cache-{{ .Branch }}-{{ checksum "go.sum" }}
+            - go-cache-{{ .Branch }}
+            - go-cache
+      - run:
+          name: Unit tests
+          command: |
+            make unit coverage-html
+            if [ "$COVERAGE" == true ]; then bash <(curl -s https://codecov.io/bash) -f .go/tests/coverage/profile.out || true ; else echo 'skipping sending coverage.'; fi
+      - store_artifacts:
+          path: .go/tests/coverage/index.html
+          destination: coverage/profile.html
+
+  versioning:
+    <<: *default
+    steps:
+      - checkout
+      - run:
+          name: Versioning
+          command: |
+            bash ./.circleci/versionize.sh
+            make version
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  push:
+    <<: *default
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Push tag and check PR body
+          command: |
+            bash ./.circleci/push.sh
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  gh_release:
+    <<: *default
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Release
+          command: |
+            bash ./.circleci/release.sh
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - linting
+      - unit
+      - versioning:
+          requires:
+            - linting
+            - unit
+          filters:
+            branches:
+              only: master
+      - push:
+          requires:
+            - versioning
+      - gh_release:
+          requires:
+            - push
