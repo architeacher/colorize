@@ -1,0 +1,80 @@
+group: edge
+language: go
+sudo: required
+
+go_import_path: github.com/ahmedkamals/colorize
+
+git:
+  depth: 8
+
+matrix:
+  allow_failures:
+    - go: tip
+  fast_finish: true
+
+env:
+  global:
+    - secure: lNN8j2JoJgQ5U0fSTwLcugEM7fgEgggWkP8xL4AwRNijpWPiMchqhkFQCOHj9QnkLItK5TAW4GiUNhVfCTERLN/MwBQ/S/JCr3doVFiTxxTmDWg8D4cloaF4qu7blOFKGVtWr5rDQhV2tEqo9eMUg4lubEL3bpOrQ7TjDnMU6sRNJDEuls2b+RLE2iVL70UYZYbUwYdh5T/hRUfg5sUawKAela3dtuxemORKzk15JWPzw6vFV0X4sbKUhtPY35T+2sLOGQQWAwmaNNmFAvrJtuYUoc54nnrP/LQeiP/1k0f2ejYzYdaYdKdvH0ca/qJb0Pbw8bSAzsNqFkhVB/u8XNaMGcxg5WRf88MG1H64Yo8kyUtDkOUrirYgrs1cu3RB2iRDMK6slJEkT2LjjG5R2zWthlj9qFe+bEoVVt5v9kztHy5JdhaE9tgbDQKfsmbkwQdh8xU4S2XSnR5eVLRi/s1na9ed5twdeLC2LT8+P8AK+wSlvBmRCowro68UbqNJemAVTQyjNBMA2Lc5qRYtGlrpdlHFGqpxckZlE3S+tGEngRc1zJwyALnXKlDfYRoFXEQN9noS2OQigO2Zm+CFdU/PyZO3VP8F1gDsfrFUIGPsn38ZD6FmgcjD4z4zEqaqYWlGQb68FbVUphQtetXIgLMlUxLO1NBh8ohSgrUHCRQ=
+    - BUILD=false
+    - GO111MODULE=on
+
+branches:
+  only:
+    # Pushes and PR to the master branch
+    - master
+    - stable
+    # IMPORTANT Ruby regex to match tags. Required, or travis won't trigger deploys when a new tag
+    # is pushed. This regex matches semantic versions like v1.2.3-rc4+2016.02.22
+    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
+
+jobs:
+  include:
+    - stage: Coverage
+      go: 1.14
+      env: COVERAGE=true
+      install:
+        - make get-deps
+    - &integration-tests
+      stage: Integration tests
+      go: 1.14.x
+      os: linux
+      env:
+        - Build=true
+        - INTEGRATION=true
+    - <<: *integration-tests
+      os: osx
+    - <<: *integration-tests
+      go: tip
+    - <<: *integration-tests
+      go: tip
+      os: osx
+
+before_install:
+   - bash ./.travis/install.sh
+
+install:
+  - make go-install
+
+script:
+  # This to fix the error "fatal: ref HEAD is not a symbolic ref", that appears after every make call.
+  - git checkout -b build-${TRAVIS_PULL_REQUEST}
+  - if [ "$BUILD" == true ]; then make build; else echo 'skipping build.'; fi
+  - if [ "$COVERAGE" == true ]; then make cover; travis_retry make coverage-send || true; else echo 'skipping coverage.'; fi
+  - if [ "$INTEGRATION" == true ]; then make integration; else echo 'skipping integratoin tests.'; fi
+
+after_success:
+  - make nuke
+  - echo "TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}"
+  - echo "TRAVIS_PULL_REQUEST_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH}"
+  - echo "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
+
+notifications:
+  email:
+      on_success: change
+      on_failure: always
+  webhooks:
+      urls:
+        - https://webhooks.gitter.im/e/c3204ae99e4ce2c8a2fe
+      on_success: change  # options: [always|never|change] default: always
+      on_failure: always  # options: [always|never|change] default: always
+      on_start: never     # options: [always|never|change] default: always
