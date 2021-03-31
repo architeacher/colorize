@@ -31,7 +31,7 @@ if grep -q -i -e "WIP" -e "work in progress" "$1"; then
     fi
 fi
 
-if ! grep -iqE "^:[[:alnum:]]+:\s{1}.*" "$1"; then
+if ! grep -qE "^:[a-z0-9_-]+:\s{1}.*" "$1"; then
     read -p "You're about to commit without an icon, do you want to continue? [y|n] " -n 1 -r < /dev/tty
     echo
     if echo "$REPLY" | grep -E '^[Nn]$' > /dev/null; then
@@ -40,7 +40,7 @@ if ! grep -iqE "^:[[:alnum:]]+:\s{1}.*" "$1"; then
     fi
 fi
 
-if ! grep -iqE ".*\[(major|minor|patch)\].*" "$1"; then
+if ! grep -qE ".*\s\[(major|minor|patch)\]\s.*" "$1"; then
     read -p "You're about to commit without release type [major|minor|patch], do you want to continue? [y|n] " -n 1 -r < /dev/tty
     echo
     if echo "$REPLY" | grep -E '^[Nn]$' > /dev/null; then

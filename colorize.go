@@ -316,11 +316,11 @@ func (clr color) format(mode uint8) string {
 // Equals compares style with a given style,
 // and returns true if they are the same.
 func (s Style) Equals(style Style) bool {
-	if (s.Foreground == nil && style.Foreground != nil) ||
+	if len(s.Font) != len(style.Font) ||
+		(s.Foreground == nil && style.Foreground != nil) ||
 		(s.Foreground != nil && !s.Foreground.Equals(style.Foreground)) ||
 		(s.Background == nil && style.Background != nil) ||
-		(s.Background != nil && !s.Background.Equals(style.Background)) ||
-		len(s.Font) != len(style.Font) {
+		(s.Background != nil && !s.Background.Equals(style.Background)) {
 		return false
 	}
 

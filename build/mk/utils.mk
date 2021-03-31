@@ -1,4 +1,4 @@
-utils: clean format help list nuke
+utils: clean format help list list-modules nuke
 
 clean: clean-bin clean-coverage clean-version clean-tests ## to clean up all generated directories/files.
 
@@ -15,6 +15,10 @@ help: ## to get help about the targets.
 
 list: ## to list all targets.
 	awk -F':' '/^[a-z0-9][^$#\/\t=]*:([^=]|$$)/ {split($$1,A,/ /);for(i in A)printf "$(LIST_CLR)%-30s$(NO_CLR)\n", A[i]}' $(MAKEFILE_LIST) | sort -u 2>&1
+
+list-modules: ## to list go modules.
+	printf "$(WARN_CLR)$(MSG_PRFX) ℹ️ Installed Go modules$(MSG_SFX)$(NO_CLR)\n"
+	$(GO) list -u -m all 2>&1
 
 nuke: clean ## to do clean up and enforce removing the corresponding installed archive or binary.
 	printf "$(WARN_CLR)$(MSG_PRFX) 🧹 Cleaning up Go dependencies$(MSG_SFX)$(NO_CLR)\n"
