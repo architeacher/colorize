@@ -30,13 +30,13 @@ branches:
 jobs:
   include:
     - stage: Coverage
-      go: 1.14
+      go: 1.16
       env: COVERAGE=true
       install:
         - make get-deps
     - &integration-tests
       stage: Integration tests
-      go: 1.14.x
+      go: 1.16.x
       os: linux
       env:
         - Build=true

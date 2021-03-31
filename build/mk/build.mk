@@ -54,7 +54,7 @@ endif
 
 BUILD_ENV ?= $(BUILD_ENV:)
 
-GO_BUILD_FLAGS ?= -i -a -installsuffix cgo
+GO_BUILD_FLAGS ?= -a -installsuffix cgo
 
 EXTLD_FLAGS ?=
 

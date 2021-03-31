@@ -1,15 +1,16 @@
-COVERAGE_PACKAGES := /
+COVERAGE_PACKAGES := $(SRC_PKGS)
 
 define coverPackage
-	$(GO) test                                   \
-	    -cover                                   \
-	    -covermode=$(COVERAGE_MODE)              \
-	    -coverprofile $(COVERAGE_PATH)/$(1).part \
-	    -parallel $(PARALLEL_TESTS)              \
-	    -tags $(GO_TAGS)            	 		 \
-	    -timeout $(TEST_TIMEOUT)                 \
-	    $(GO_FLAGS)                              \
-	    $(APP_DIR)/$(1) 2>&1;
+	$(eval FILE_NAME=$(shell basename $(1) 2>&1))
+	$(GO) test                                   		 \
+	    -cover                                   		 \
+	    -covermode=$(COVERAGE_MODE)              		 \
+	    -coverprofile $(COVERAGE_PATH)/$(FILE_NAME).part \
+	    -parallel $(PARALLEL_TESTS)              		 \
+	    -tags $(GO_TAGS)            	 		 		 \
+	    -timeout $(TEST_TIMEOUT)                 		 \
+	    $(GO_FLAGS)                              		 \
+	    $(1) 2>&1;
 endef
 
 # Goveralls binary.

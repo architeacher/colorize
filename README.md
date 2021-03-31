@@ -52,7 +52,7 @@ Table of Contents
 
 ### Prerequisites
 
-*   [Golang 1.14 or later][2].
+*   [Golang 1.15 or later][2].
 
 ### Installation
 
