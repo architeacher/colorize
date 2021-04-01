@@ -24,7 +24,9 @@ func main() {
 		},
 	}
 
-	print(colorized.Sprintln(style, "I am ", "stylish!"))
+	callback := colorized.SprintlnFunc()
+	print(callback(style, "I am ", "stylish!"))
+
 	printDirectColors(colorized)
 
 	colorized.Set(colorize.Style{

@@ -99,7 +99,12 @@ func TestDisableEnableColor(t *testing.T) {
 				colorized.DisableColor()
 				colorized.Print(testCase.appliedStyle, testCase.input)
 			})
-			assert.Equal(t, fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output), "Disabled color for print.")
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", output),
+				"Disabled color for print.",
+			)
 		})
 	}
 }
@@ -132,7 +137,8 @@ func TestFprint(t *testing.T) {
 
 			assert.Equal(
 				t,
-				fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output),
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", output),
 				"colorize.Fprint()",
 			)
 		})
@@ -165,7 +171,12 @@ func TestFprintf(t *testing.T) {
 				colorized.Fprintf(os.Stdout, testCase.appliedStyle, "%s", testCase.input)
 			})
 
-			assert.Equal(t, fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output), "colorize.Fprintf()")
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", output),
+				"colorize.Fprintf()",
+			)
 		})
 	}
 }
@@ -196,7 +207,12 @@ func TestFprintln(t *testing.T) {
 				colorized.Fprintln(os.Stdout, testCase.appliedStyle, testCase.input)
 			})
 
-			assert.Equal(t, fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output), "colorize.Fprintln()")
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", output),
+				"colorize.Fprintln()",
+			)
 		})
 	}
 }
@@ -227,7 +243,12 @@ func TestPrint(t *testing.T) {
 				colorized.Print(testCase.appliedStyle, testCase.input)
 			})
 
-			assert.Equal(t, fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output), "colorize.Print()")
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", output),
+				"colorize.Print()",
+			)
 		})
 	}
 }
@@ -258,7 +279,12 @@ func TestPrintf(t *testing.T) {
 				colorized.Printf(testCase.appliedStyle, "%s", testCase.input)
 			})
 
-			assert.Equal(t, fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output), "colorize.Printf()")
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", output),
+				"colorize.Printf()",
+			)
 		})
 	}
 }
@@ -289,7 +315,12 @@ func TestPrintln(t *testing.T) {
 				colorized.Println(testCase.appliedStyle, testCase.input)
 			})
 
-			assert.Equal(t, fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output), "colorize.Println()")
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", output),
+				"colorize.Println()",
+			)
 		})
 	}
 }
@@ -390,6 +421,314 @@ func TestSprintln(t *testing.T) {
 	}
 }
 
+func TestFprintFunc(t *testing.T) {
+	testCases := []struct {
+		id           string
+		input        string
+		appliedStyle Style
+		expected     string
+	}{
+		{
+			id:    "Should output in Black foreground color.",
+			input: "Output this in Black foreground color.",
+			appliedStyle: Style{
+				Foreground: RGB(0, 0, 0),
+			},
+			expected: "\x1b[38;2;0;0;0m[Output this in Black foreground color.]\x1b[0m",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.id, func(t *testing.T) {
+			t.Parallel()
+
+			output := captureOutput(t, func(output io.Writer) {
+				colorized := NewColorable(output)
+				colorized.FprintFunc()(os.Stdout, testCase.appliedStyle, testCase.input)
+			})
+
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output),
+				"colorize.FprintFunc()",
+			)
+		})
+	}
+}
+
+func TestFprintfFunc(t *testing.T) {
+	testCases := []struct {
+		id           string
+		input        string
+		appliedStyle Style
+		expected     string
+	}{
+		{
+			id:    "Should output in Blue foreground color.",
+			input: "Output this in Blue foreground color.",
+			appliedStyle: Style{
+				Foreground: RGB(0, 0, 255),
+			},
+			expected: "\x1b[38;2;0;0;255m[Output this in Blue foreground color.]\x1b[0m",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.id, func(t *testing.T) {
+			t.Parallel()
+
+			output := captureOutput(t, func(output io.Writer) {
+				colorized := NewColorable(output)
+				colorized.FprintfFunc()(os.Stdout, testCase.appliedStyle, "%s", testCase.input)
+			})
+
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output),
+				"colorize.FprintfFunc()",
+			)
+		})
+	}
+}
+
+func TestFprintlnFunc(t *testing.T) {
+	testCases := []struct {
+		id           string
+		input        string
+		appliedStyle Style
+		expected     string
+	}{
+		{
+			id:    "Should output in Cyan foreground color.",
+			input: "Output this in Cyan foreground color.",
+			appliedStyle: Style{
+				Foreground: RGB(0, 255, 255),
+			},
+			expected: "\x1b[38;2;0;255;255m[Output this in Cyan foreground color.]\n\x1b[0m",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.id, func(t *testing.T) {
+			t.Parallel()
+
+			output := captureOutput(t, func(output io.Writer) {
+				colorized := NewColorable(output)
+				colorized.FprintlnFunc()(os.Stdout, testCase.appliedStyle, testCase.input)
+			})
+
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output),
+				"colorize.FprintlnFunc()",
+			)
+		})
+	}
+}
+
+func TestPrintFunc(t *testing.T) {
+	testCases := []struct {
+		id           string
+		input        string
+		appliedStyle Style
+		expected     string
+	}{
+		{
+			id:    "Should output in Gray foreground color.",
+			input: "Output this in Gray foreground color.",
+			appliedStyle: Style{
+				Foreground: RGB(128, 128, 128),
+			},
+			expected: "\x1b[38;2;128;128;128m[Output this in Gray foreground color.]\x1b[0m",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.id, func(t *testing.T) {
+			t.Parallel()
+
+			output := captureOutput(t, func(output io.Writer) {
+				colorized := NewColorable(output)
+				colorized.PrintFunc()(testCase.appliedStyle, testCase.input)
+			})
+
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output),
+				"colorize.PrintFunc()",
+			)
+		})
+	}
+}
+
+func TestPrintfFunc(t *testing.T) {
+	testCases := []struct {
+		id           string
+		input        string
+		appliedStyle Style
+		expected     string
+	}{
+		{
+			id:    "Should output in Green foreground color.",
+			input: "Output this in Green foreground color.",
+			appliedStyle: Style{
+				Foreground: RGB(0, 255, 0),
+			},
+			expected: "\x1b[38;2;0;255;0m[Output this in Green foreground color.]\x1b[0m",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.id, func(t *testing.T) {
+			t.Parallel()
+
+			output := captureOutput(t, func(output io.Writer) {
+				colorized := NewColorable(output)
+				colorized.PrintfFunc()(testCase.appliedStyle, "%s", testCase.input)
+			})
+
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", output),
+				"colorize.PrintfFunc()",
+			)
+		})
+	}
+}
+
+func TestPrintlnFunc(t *testing.T) {
+	testCases := []struct {
+		id           string
+		input        string
+		appliedStyle Style
+		expected     string
+	}{
+		{
+			id:    "Should output in Magenta foreground color.",
+			input: "Output this in Magenta foreground color.",
+			appliedStyle: Style{
+				Foreground: RGB(255, 0, 255),
+			},
+			expected: "\x1b[38;2;255;0;255m[Output this in Magenta foreground color.]\n\x1b[0m",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.id, func(t *testing.T) {
+			t.Parallel()
+
+			output := captureOutput(t, func(output io.Writer) {
+				colorized := NewColorable(output)
+				colorized.PrintlnFunc()(testCase.appliedStyle, testCase.input)
+			})
+
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", output),
+				"colorize.PrintlnFunc()",
+			)
+		})
+	}
+}
+
+func TestSprintFunc(t *testing.T) {
+	testCases := []struct {
+		id           string
+		input        string
+		appliedStyle Style
+		expected     string
+	}{
+		{
+			id:    "Should output in Orange foreground color.",
+			input: "Output this in Orange foreground color.",
+			appliedStyle: Style{
+				Foreground: RGB(255, 165, 0),
+			},
+			expected: "\x1b[38;2;255;165;0m[Output this in Orange foreground color.]\x1b[0m",
+		},
+	}
+
+	colorized := NewColorable(os.Stdout)
+	for _, testCase := range testCases {
+		t.Run(testCase.id, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", colorized.SprintFunc()(testCase.appliedStyle, testCase.input)),
+				"colorize.SprintFunc()",
+			)
+		})
+	}
+}
+
+func TestSprintfFunc(t *testing.T) {
+	testCases := []struct {
+		id           string
+		input        string
+		appliedStyle Style
+		expected     string
+	}{
+		{
+			id:    "Should output in Purple foreground color.",
+			input: "Output this in Purple foreground color.",
+			appliedStyle: Style{
+				Foreground: RGB(128, 0, 128),
+			},
+			expected: "\x1b[38;2;128;0;128m[Output this in Purple foreground color.]\x1b[0m",
+		},
+	}
+
+	colorized := NewColorable(os.Stdout)
+	for _, testCase := range testCases {
+		t.Run(testCase.id, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", colorized.SprintfFunc()(testCase.appliedStyle, "%s", testCase.input)),
+				"colorize.SprintfFunc()",
+			)
+		})
+	}
+}
+
+func TestSprintlnFunc(t *testing.T) {
+	testCases := []struct {
+		id           string
+		input        string
+		appliedStyle Style
+		expected     string
+	}{
+		{
+			id:    "Should output in Red foreground color.",
+			input: "Output this in Red foreground color.",
+			appliedStyle: Style{
+				Foreground: RGB(255, 0, 0),
+			},
+			expected: "\x1b[38;2;255;0;0m[Output this in Red foreground color.]\n\x1b[0m",
+		},
+	}
+
+	colorized := NewColorable(os.Stdout)
+	for _, testCase := range testCases {
+		t.Run(testCase.id, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", colorized.SprintlnFunc()(testCase.appliedStyle, testCase.input)),
+				"colorize.SprintlnFunc()",
+			)
+		})
+	}
+}
+
 func TestSet(t *testing.T) {
 	testCases := []struct {
 		id           string
@@ -418,7 +757,12 @@ func TestSet(t *testing.T) {
 				colorized.Reset()
 			})
 
-			assert.Equal(t, fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output), "Should set Style.")
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", output),
+				"Should set Style.",
+			)
 		})
 	}
 }
@@ -450,7 +794,12 @@ func TestReset(t *testing.T) {
 				fmt.Print(testCase.input)
 			})
 
-			assert.Equal(t, fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output), "Should resetFormat Style.")
+			assert.Equal(
+				t,
+				fmt.Sprintf("%q", testCase.expected),
+				fmt.Sprintf("%q", output),
+				"Should resetFormat Style.",
+			)
 		})
 	}
 }

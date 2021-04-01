@@ -185,47 +185,110 @@ func (c *Colorable) Sprintln(style Style, s ...interface{}) string {
 	return c.wrap(style, fmt.Sprintln(s...))
 }
 
-// Black returns a Black foreground color effect.
+// FprintFunc returns a new callback that prints the passed arguments as Colorable.Fprint().
+func (c *Colorable) FprintFunc() func(w io.Writer, style Style, s ...interface{}) (n int, err error) {
+	return func(w io.Writer, style Style, s ...interface{}) (n int, err error) {
+		return c.Fprint(w, style, s)
+	}
+}
+
+// FprintfFunc returns a new callback that prints the passed arguments as Colorable.Fprintf().
+func (c *Colorable) FprintfFunc() func(w io.Writer, style Style, format string, s ...interface{}) (n int, err error) {
+	return func(w io.Writer, style Style, format string, s ...interface{}) (n int, err error) {
+		return c.Fprintf(w, style, format, s)
+	}
+}
+
+// FprintlnFunc returns a new callback that prints the passed arguments as Colorable.Fprintln().
+func (c *Colorable) FprintlnFunc() func(w io.Writer, style Style, s ...interface{}) (n int, err error) {
+	return func(w io.Writer, style Style, s ...interface{}) (n int, err error) {
+		return c.Fprintln(w, style, s)
+	}
+}
+
+// PrintFunc returns a new callback that prints the passed arguments as Colorable.Print().
+func (c *Colorable) PrintFunc() func(style Style, s ...interface{}) (n int, err error) {
+	return func(style Style, s ...interface{}) (n int, err error) {
+		return c.Print(style, s)
+	}
+}
+
+// PrintfFunc returns a new callback that prints the passed arguments as Colorable.Printf().
+func (c *Colorable) PrintfFunc() func(style Style, format string, s ...interface{}) (n int, err error) {
+	return func(style Style, format string, s ...interface{}) (n int, err error) {
+		return c.Printf(style, format, s)
+	}
+}
+
+// PrintlnFunc returns a new callback that prints the passed arguments as Colorable.Println().
+func (c *Colorable) PrintlnFunc() func(style Style, s ...interface{}) (n int, err error) {
+	return func(style Style, s ...interface{}) (n int, err error) {
+		return c.Println(style, s)
+	}
+}
+
+// SprintFunc returns a new callback that prints the passed arguments as Colorable.Sprint().
+func (c *Colorable) SprintFunc() func(style Style, s ...interface{}) string {
+	return func(style Style, s ...interface{}) string {
+		return c.Sprint(style, s)
+	}
+}
+
+// SprintfFunc returns a new callback that prints the passed arguments as Colorable.Sprintf().
+func (c *Colorable) SprintfFunc() func(style Style, format string, s ...interface{}) string {
+	return func(style Style, format string, s ...interface{}) string {
+		return c.Sprintf(style, format, s)
+	}
+}
+
+// SprintlnFunc returns a new callback that prints the passed arguments as Colorable.Sprintln().
+func (c *Colorable) SprintlnFunc() func(style Style, s ...interface{}) string {
+	return func(style Style, s ...interface{}) string {
+		return c.Sprintln(style, s)
+	}
+}
+
+// Black returns a black foreground color effect.
 func (c *Colorable) Black(s ...interface{}) string {
 	return c.Sprint(getForegroundStyle(0, 0, 0), s...)
 }
 
-// Blue returns a Blue foreground color effect.
+// Blue returns a blue foreground color effect.
 func (c *Colorable) Blue(s ...interface{}) string {
 	return c.Sprint(getForegroundStyle(0, 0, 255), s...)
 }
 
-// Cyan returns a Cyan foreground color effect.
+// Cyan returns a cyan foreground color effect.
 func (c *Colorable) Cyan(s ...interface{}) string {
 	return c.Sprint(getForegroundStyle(0, 255, 255), s...)
 }
 
-// Gray returns a Gray foreground color effect.
+// Gray returns a gray foreground color effect.
 func (c *Colorable) Gray(s ...interface{}) string {
 	return c.Sprint(getForegroundStyle(128, 128, 128), s...)
 }
 
-// Green returns a Green foreground color effect.
+// Green returns a green foreground color effect.
 func (c *Colorable) Green(s ...interface{}) string {
 	return c.Sprint(getForegroundStyle(0, 255, 0), s...)
 }
 
-// Magenta returns a Magenta foreground color effect.
+// Magenta returns a magenta foreground color effect.
 func (c *Colorable) Magenta(s ...interface{}) string {
 	return c.Sprint(getForegroundStyle(255, 0, 255), s...)
 }
 
-// Orange returns an Orange foreground color effect.
+// Orange returns an orange foreground color effect.
 func (c *Colorable) Orange(s ...interface{}) string {
 	return c.Sprint(getForegroundStyle(255, 165, 0), s...)
 }
 
-// Purple returns a Purple foreground color effect.
+// Purple returns a purple foreground color effect.
 func (c *Colorable) Purple(s ...interface{}) string {
 	return c.Sprint(getForegroundStyle(128, 0, 128), s...)
 }
 
-// Red returns a Red foreground color effect.
+// Red returns a red foreground color effect.
 func (c *Colorable) Red(s ...interface{}) string {
 	return c.Sprint(getForegroundStyle(255, 0, 0), s...)
 }

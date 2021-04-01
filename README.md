@@ -2,15 +2,14 @@ Colorize [![CircleCI](https://circleci.com/gh/ahmedkamals/colorize.svg?style=svg
 ========
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE  "License")
-[![release](https://img.shields.io/github/release/ahmedkamals/colorize.svg?style=flat-square)](https://github.com/ahmedkamals/colorize/releases/latest "Release")
+[![release](https://img.shields.io/github/v/release/ahmedkamals/colorize.svg)](https://github.com/ahmedkamals/colorize/releases/latest "Release")
 [![Travis CI](https://travis-ci.org/ahmedkamals/colorize.svg)](https://travis-ci.org/ahmedkamals/colorize "Cross Build Status [Linux, OSx]")
 [![codecov](https://codecov.io/gh/ahmedkamals/colorize/branch/master/graph/badge.svg)](https://codecov.io/gh/ahmedkamals/colorize "Code Coverage")
 [![Coverage Status](https://coveralls.io/repos/github/ahmedkamals/colorize/badge.svg?branch=master)](https://coveralls.io/github/ahmedkamals/colorize?branch=master  "Code Coverage")
 [![GolangCI](https://golangci.com/badges/github.com/ahmedkamals/colorize.svg?style=flat-square)](https://golangci.com/r/github.com/ahmedkamals/colorize "Code Coverage")
 [![Go Report Card](https://goreportcard.com/badge/github.com/ahmedkamals/colorize)](https://goreportcard.com/report/github.com/ahmedkamals/colorize  "Go Report Card")
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/3c3a84678b4048d29d94f008a985164a)](https://www.codacy.com/manual/ahmedkamals/colorize?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ahmedkamals/colorize&amp;utm_campaign=Badge_Grade "Code Quality")
-[![Go Walker](http://gowalker.org/api/v1/badge)](https://gowalker.org/github.com/ahmedkamals/colorize "Documentation")
-[![GoDoc](https://godoc.org/github.com/ahmedkamals/colorize?status.svg)](https://godoc.org/github.com/ahmedkamals/colorize "API Documentation")
+[![GoDoc](https://godoc.org/github.com/ahmedkamals/colorize?status.svg)](https://godoc.org/github.com/ahmedkamals/colorize "Documentation")
 [![DepShield Badge](https://depshield.sonatype.org/badges/ahmedkamals/colorize/depshield.svg)](https://depshield.github.io "DepShield")
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fahmedkamals%2Fcolorize.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fahmedkamals%2Fcolorize?ref=badge_shield "Dependencies")
 [![Join the chat at https://gitter.im/ahmedkamals/colorize](https://badges.gitter.im/ahmedkamals/colorize.svg)](https://gitter.im/ahmedkamals/colorize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge "Let's discuss")
@@ -89,7 +88,9 @@ func main() {
 		},
 	}
 
-	print(colorized.Sprintln(style, "I am ", "stylish!"))
+	callback := colorized.SprintlnFunc()
+	print(callback(style, "I am ", "stylish!"))
+
 	printDirectColors(colorized)
 
 	colorized.Set(colorize.Style{
@@ -176,7 +177,7 @@ Please refer to the [`CONTRIBUTING.md`](https://github.com/ahmedkamals/colorize/
 
 ### Git Hooks
 
-In order to set up tests running on each commit do following steps:
+In order to set up tests running on each commit do the following steps:
 
 ```bash
 ln -sf ../../assets/git/hooks/pre-commit.sh .git/hooks/pre-commit && \
