@@ -143,7 +143,7 @@ define buildTargets
 endef
 
 define getDependency
-	$(GO) get -u -v $(GO_FLAGS) $(1) 2>&1;
+	GO111MODULE=off $(GO) get -u -v $(GO_FLAGS) $(1) 2>&1;
 endef
 
 define replaceInFile
