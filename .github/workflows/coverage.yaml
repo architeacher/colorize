@@ -1,0 +1,55 @@
+name: Coverage
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - '**.yaml'
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - "**.md"
+      - "assets/**"
+      - "go.mod"
+
+jobs:
+  coverage:
+    name: Coverage on go ${{ matrix.go_version }} and ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: [^1]
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Install Go ${{ matrix.go_version }}
+        timeout-minutes: 5
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Coverage
+        run: |
+          make coverage-html
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: coverage
+          path: .go/tests/coverage/index.html

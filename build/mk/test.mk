@@ -67,7 +67,7 @@ mem-profile-serve: bench-with-profile ## to serve memory benchmark profile over 
 	printf "$(INFO_CLR)$(MSG_PRFX) Serving memory profile on port 8082$(MSG_SFX)$(NO_CLR)\n"
 	$(GO) tool pprof -http=":8082" $(BENCH_PROFILE) $(BENCH_MEMORY_PROFILE) 2>&1
 
-profile: profile-pdf profile-svg ## to get benchmark profiles in svg and pdf formats.
+profile: profile-pdf profile-png profile-svg ## to get benchmark profiles in pdf, png and svg formats.
 
 profile-%: bench-with-profile ## to get benchmark profiles in specified format.
 	$(eval FORMAT=$(firstword $(subst -, , $*)))
