@@ -3,10 +3,9 @@ package colorize
 import (
 	"fmt"
 	"github.com/mattn/go-isatty"
+	baseColor "image/color"
 	"io"
 	"os"
-	"strconv"
-	"strings"
 	"sync"
 )
 
@@ -18,45 +17,8 @@ type (
 		output        io.Writer
 	}
 
-	// Color representation interface.
-	Color interface {
-		fmt.GoStringer
-		Red() uint8
-		Green() uint8
-		Blue() uint8
-		Equals(Color) bool
-		format(uint8) string
-	}
-
-	// color for RGB.
-	color struct {
-		Color
-		RedValue   uint8
-		GreenValue uint8
-		BlueValue  uint8
-	}
-
-	// Style to be applied to the text.
-	Style struct {
-		fmt.Formatter
-		fmt.Stringer
-		Foreground Color
-		Background Color
-		Font       []FontEffect
-	}
-
 	// FontEffect value.
 	FontEffect int
-)
-
-const (
-	// resetFormat for single/multiple value(s), e.g. \x1b[0m
-	resetFormat = "\u001b[%dm"
-	// colorFormat for color values, e.g. \x1b[38;2;0;0;0;48;2;255;0;255m
-	colorFormat = "\x1b[%sm"
-
-	foreground = uint8(38)
-	background = uint8(48)
 )
 
 var (
@@ -293,7 +255,7 @@ func (c *Colorable) Red(s ...interface{}) string {
 	return c.Sprint(getForegroundStyle(255, 0, 0), s...)
 }
 
-// White returns a White foreground color effect.
+// White returns a white foreground color effect.
 func (c *Colorable) White(s ...interface{}) string {
 	return c.Sprint(getForegroundStyle(255, 255, 255), s...)
 }
@@ -342,93 +304,6 @@ func (c *Colorable) wrap(style Style, s string) string {
 	return style.String() + s + style.resetFormat()
 }
 
-func (clr color) Red() uint8 {
-	return clr.RedValue
-}
-
-func (clr color) Green() uint8 {
-	return clr.GreenValue
-}
-
-func (clr color) Blue() uint8 {
-	return clr.BlueValue
-}
-
-func (clr color) GoString() string {
-	return fmt.Sprintf(
-		"%d;%d;%d",
-		clr.Red(),
-		clr.Green(),
-		clr.Blue(),
-	)
-}
-
-func (clr color) Equals(color Color) bool {
-	return color != nil &&
-		clr.Red() == color.Red() &&
-		clr.Green() == color.Green() &&
-		clr.Blue() == color.Blue()
-}
-
-// format returns a string color representation based on
-// given mode (foreground or background).
-func (clr color) format(mode uint8) string {
-	return fmt.Sprintf("%d;2;%#v", mode, clr)
-}
-
-// Equals compares style with a given style,
-// and returns true if they are the same.
-func (s Style) Equals(style Style) bool {
-	if len(s.Font) != len(style.Font) ||
-		(s.Foreground == nil && style.Foreground != nil) ||
-		(s.Foreground != nil && !s.Foreground.Equals(style.Foreground)) ||
-		(s.Background == nil && style.Background != nil) ||
-		(s.Background != nil && !s.Background.Equals(style.Background)) {
-		return false
-	}
-
-	for _, font := range s.Font {
-		if !fontExists(font, style.Font) {
-			return false
-		}
-	}
-
-	return true
-}
-
-// Format to an 24-bit ANSI escape sequence
-// an example output might be: "[38;2;255;0;0m" -> Red color
-func (s Style) Format(fs fmt.State, verb rune) {
-	format := make([]string, 0)
-
-	if s.Foreground != nil {
-		format = append(format, s.Foreground.format(foreground))
-	}
-
-	if s.Background != nil {
-		format = append(format, s.Background.format(background))
-	}
-
-	if s.Font != nil && len(s.Font) > 0 {
-		for _, fontEffect := range s.Font {
-			format = append(format, strconv.FormatInt(int64(fontEffect), 10))
-		}
-	}
-
-	switch verb {
-	case 's', 'v':
-		fmt.Fprintf(fs, colorFormat, strings.Join(format, ";"))
-	}
-}
-
-func (s Style) String() string {
-	return fmt.Sprintf("%s", s)
-}
-
-func (s Style) resetFormat() string {
-	return fmt.Sprintf(resetFormat, Normal)
-}
-
 func boolPtr(v bool) *bool {
 	return &v
 }
@@ -441,9 +316,11 @@ func getCachedColorValue(red, green, blue uint8) Color {
 	colorValue, ok := colorCache.Load(cacheKey)
 	if !ok {
 		colorValue = color{
-			RedValue:   red,
-			GreenValue: green,
-			BlueValue:  blue,
+			rgba: baseColor.RGBA{
+				R: red,
+				G: green,
+				B: blue,
+			},
 		}
 		colorCache.Store(cacheKey, colorValue)
 	}

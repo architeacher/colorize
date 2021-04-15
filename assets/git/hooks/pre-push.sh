@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # An example hook script to verify what is about to be pushed.  Called by "git
 # push" after it has checked the remote status, but before anything has been
@@ -47,11 +47,12 @@ do
 	fi
 done
 
+# Check if pushing to a protected branch.
 protected_branch='master'
 current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
 
-if [ $protected_branch = "$current_branch" ]; then
-    read -p "You're about to push master, is that what you intended? [y|n] " -n 1 -r < /dev/tty
+if [ "$current_branch" = "$protected_branch" ]; then
+    read -p "You're about to push to a protected branch \"${protected_branch}\", is that what you intended? [y|n] " -n 1 -r < /dev/tty
     echo
     if echo "$REPLY" | grep -E '^[Yy]$' > /dev/null; then
         exit 0 # push will execute
