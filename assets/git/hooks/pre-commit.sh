@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if git rev-parse --verify HEAD >/dev/null 2>&1
 then
@@ -36,6 +36,19 @@ If you know what you are doing you can disable this check using:
   git config hooks.allownonascii true
 EOF
 	exit 1
+fi
+
+# Check if committing to a protected branch.
+protected_branch='master'
+current_branch="$(git rev-parse --abbrev-ref HEAD | sed -e 's,.*/\(.*\),\1,')"
+
+if [ "$current_branch" = "$protected_branch" ]; then
+    read -p "You're about to commit to a protected branch \"${protected_branch}\", is that what you intended? [y|n] " -n 1 -r < /dev/tty
+    echo
+    if echo "$REPLY" | grep -E '^[Yy]$' > /dev/null; then
+        exit 0 # push will execute
+    fi
+    exit 1 # push will not execute
 fi
 
 # Running code format check.

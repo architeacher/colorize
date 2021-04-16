@@ -21,4 +21,4 @@
 
 ## v1.1.1
 
--   Adding Github's automated dependency updater **Dependabot**.
+-   Refactoring and fixing build process.
