@@ -2,6 +2,7 @@
 -   [v1.0.1](#v101)
 -   [v1.1.0](#v110)
 -   [v1.1.1](#v111)
+-   [v1.1.2](#v112)
 
 <!-- NEW RELEASE NOTES ENTRY -->
 
@@ -22,3 +23,7 @@
 ## v1.1.1
 
 -   Refactoring and fixing build process.
+
+## v1.1.2
+
+-   Reducing go version requirement.
