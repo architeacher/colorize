@@ -51,10 +51,10 @@ if [ "$current_branch" = "$protected_branch" ]; then
     exit 1 # push will not execute
 fi
 
-# Running code format check.
-format_check_result=$(make format-check)
-test $(echo "$format_check_result" | grep -iE ".*Error.*" | wc -c) != 0 && {
-  echo "$format_check_result"
+# Running code validation check.
+validation_check_result=$(make validate)
+test $(echo "$validation_check_result" | grep -iE ".*Error.*" | wc -c) != 0 && {
+  echo "$validation_check_result"
   exit 1
 }
 
