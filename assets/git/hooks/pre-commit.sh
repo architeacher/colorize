@@ -45,11 +45,21 @@ current_branch="$(git rev-parse --abbrev-ref HEAD | sed -e 's,.*/\(.*\),\1,')"
 if [ "$current_branch" = "$protected_branch" ]; then
     read -p "You're about to commit to a protected branch \"${protected_branch}\", is that what you intended? [y|n] " -n 1 -r < /dev/tty
     echo
-    if echo "$REPLY" | grep -E '^[Yy]$' > /dev/null; then
-        exit 0 # push will execute
+    if echo "$REPLY" | grep -E '^[Nn]$' > /dev/null; then
+        exit 1 # push will not execute
     fi
-    exit 1 # push will not execute
 fi
+
+# Check if there are changes in the CHANGELOG.md file
+change_log_file="CHANGELOG.md"
+test $(git diff --name-only HEAD | grep -iE ".*${change_log_file}.*" | wc -c) = 0 && {
+    read -p "You're about to commit WITHOUT changes in \"${change_log_file}\", is that what you intended? [y|n] " -n 1 -r < /dev/tty
+    echo
+    if echo "$REPLY" | grep -E '^[Nn]$' > /dev/null; then
+        exit 1 # push will not execute
+    fi
+}
+
 
 # Running code validation check.
 validation_check_result=$(make validate)

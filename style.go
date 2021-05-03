@@ -23,8 +23,8 @@ const (
 	// colorFormat for color values, e.g. \x1b[38;2;0;0;0;48;2;255;0;255m
 	colorFormat = "\x1b[%sm"
 
-	foreground = uint8(38)
-	background = uint8(48)
+	foreground = colorMode(38)
+	background = colorMode(48)
 )
 
 // Equals compares style with a given style,
@@ -53,11 +53,11 @@ func (s Style) Format(fs fmt.State, verb rune) {
 	format := make([]string, 0)
 
 	if s.Foreground != nil {
-		format = append(format, s.Foreground.format(foreground))
+		format = append(format, s.Foreground.generate(foreground))
 	}
 
 	if s.Background != nil {
-		format = append(format, s.Background.format(background))
+		format = append(format, s.Background.generate(background))
 	}
 
 	if s.Font != nil && len(s.Font) > 0 {

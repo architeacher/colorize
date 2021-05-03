@@ -3,6 +3,7 @@
 -   [v1.1.0](#v110)
 -   [v1.1.1](#v111)
 -   [v1.1.2](#v112)
+-   [v1.2.0](#v120)
 
 <!-- NEW RELEASE NOTES ENTRY -->
 
@@ -27,3 +28,7 @@
 ## v1.1.2
 
 -   Reducing go version requirement.
+
+## v1.2.0
+
+-   Adding support of hexadecimal colors.
