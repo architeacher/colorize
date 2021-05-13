@@ -3,6 +3,7 @@ package colorize
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	baseColor "image/color"
 	"io"
 	"io/ioutil"
 	"os"
@@ -984,6 +985,75 @@ func TestDirectColors(t *testing.T) {
 			output := testCase.appliedStyle(colorized, testCase.input)
 
 			assert.Equal(t, fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output))
+		})
+	}
+}
+
+func TestHex(t *testing.T) {
+	testCases := []struct {
+		id            string
+		input         string
+		expectedError error
+		expected      Color
+	}{
+		{
+			id:            "Should give an error when the color does not start with hash \"#\".",
+			input:         "D290E4",
+			expectedError: fmt.Errorf("input does not match format"),
+			expected:      nil,
+		},
+		{
+			id:            "Should give an error when the color length is too short.",
+			input:         "#E8",
+			expectedError: fmt.Errorf("EOF"),
+			expected:      nil,
+		},
+		{
+			id:            "Should give an error when the input is not matching hexadecimal digits.",
+			input:         "#XYZ",
+			expectedError: fmt.Errorf("expected integer"),
+			expected:      nil,
+		},
+		{
+			id:            "Should not give an error when the color length is 4.",
+			input:         "#E88",
+			expectedError: nil,
+			expected: color{
+				rgba: baseColor.RGBA{
+					R: 238,
+					G: 136,
+					B: 136,
+				},
+			},
+		},
+		{
+			id:            "Should not give an error when the color length is 7.",
+			input:         "#e88388",
+			expectedError: nil,
+			expected: color{
+				rgba: baseColor.RGBA{
+					R: 232,
+					G: 131,
+					B: 136,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.id, func(t *testing.T) {
+			color, err := Hex(testCase.input)
+
+			if testCase.expectedError != nil {
+				assert.Nil(t, color)
+				assert.Error(t, err)
+				assert.Equal(t, testCase.expectedError.Error(), err.Error())
+
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, testCase.expected, color)
 		})
 	}
 }

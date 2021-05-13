@@ -37,13 +37,13 @@ PKG_NAMESPACE ?= $(shell $(GO) list -e ./ 2> /dev/null)
 
 # Get the current local branch name from git (if we can, this may be blank).
 GIT_BRANCH := $(shell git symbolic-ref --short HEAD 2> /dev/null || git rev-parse --abbrev-ref HEAD 2> /dev/null)
-GIT_COMMIT := $(shell git rev-parse HEAD 2> /dev/null)
+GIT_COMMIT := $(shell git rev-list -1 HEAD 2> /dev/null)
 # Get the git commit.
 GIT_DIRTY := $(shell test -n "`git status --porcelain --untracked-files=no 2> /dev/null`" && echo "+CHANGES" || true 2> /dev/null)
 
 # Build Flags
 # The default version that's chosen when pushing the images. Can/should be overridden.
-BUILD_VERSION ?= $(shell git describe --abbrev=8 --dirty='-Changes' 2> /dev/null | cut -d "v" -f 2 2> /dev/null)
+BUILD_VERSION ?= $(shell git describe --always --abbrev=8 --tags --dirty='-Changes' 2> /dev/null | cut -d "v" -f 2 2> /dev/null)
 BUILD_HASH ?= git-$(shell git rev-parse --short=18 HEAD 2> /dev/null)
 BUILD_TIME ?= $(shell date +%FT%T%z 2> /dev/null)
 
@@ -82,12 +82,8 @@ GO_LINKER_FLAGS ?=-s                                                 \
         -X ${PKG_NAMESPACE}/core.BuildTime=$(BUILD_TIME)             \
         -X ${PKG_NAMESPACE}/core.GitBranch=$(GIT_BRANCH)             \
         -X ${PKG_NAMESPACE}/core.GitCommit=$(GIT_COMMIT)$(GIT_DIRTY) \
-        -X ${PKG_NAMESPACE}/core.GoVersion=$(GO_VERSION)
-
-ifdef BUILD_VERSION
-	GO_LINKER_FLAGS += -X main.version=$(BUILD_VERSION)
-	DOCKER_IMAGE_TAG = $(BUILD_VERSION)
-endif
+        -X ${PKG_NAMESPACE}/core.GoVersion=$(GO_VERSION)						 \
+        -X main.version=$(BUILD_VERSION)
 
 ifdef EXTLD_FLAGS
     GO_LINKER_FLAGS	+= -extldflags "$(EXTLD_FLAGS)"
@@ -112,29 +108,30 @@ GO_ENV_FLAGS += $(BUILD_ENV)
 extension = $(patsubst windows, .exe, $(filter windows, $(1)))
 
 define goCross
-	$(if $(findstring [$(1)/$(2)],$(VALID_OS_ARCH)),                                         \
-	printf "$(OK_CLR)$(MSG_PRFX) 🏗️Building binary for [$(1)/$(2)]$(MSG_SFX)$(NO_CLR)\n";      \
-	printf "$(INFO_CLR)\
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(1) GOARCH=$(2) $(GO_ENV_FLAGS)\n\
-	    $(GO) build -o $(BINARY_PATH)/$(BINARY_PREFIX)-${os.$(1)}-${arch.$(2)}$(call extension,$(GO_OS))\n\
-	    $(GO_BUILD_FLAGS)\n\
-	    -ldflags '$(shell echo $(GO_LINKER_FLAGS) | sed -e 's|extldflags $(EXTLD_FLAGS)|extldflags \\"$(EXTLD_FLAGS)\\"|g' 2> /dev/null)'\n\
-	    -gcflags=\"$(GO_GC_FLAGS)\"\n\
-	    -asmflags=\"$(GO_ASM_FLAGS)\"\n\
-	    -tags $(GO_TAGS)\n\
-	    $(GO_FLAGS) $(CMD_DIR)\
-	    $(NO_CLR)\n";                                                                        \
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(1) GOARCH=$(2) $(GO_ENV_FLAGS)                         \
-		$(GO) build                                                                          \
-		-o $(BINARY_PATH)/$(BINARY_PREFIX)-${os.$(1)}-${arch.$(2)}$(call extension,$(GO_OS)) \
-		$(GO_BUILD_FLAGS)                                                                    \
-		-ldflags '$(GO_LINKER_FLAGS)'                                                        \
-		-gcflags="$(GO_GC_FLAGS)"                                                            \
-		-asmflags="$(GO_ASM_FLAGS)"                                                          \
-		-tags $(GO_TAGS)                                                                     \
-		$(GO_FLAGS) $(CMD_DIR);,                                                             \
-		printf "$(ERROR_CLR)No defined build target for: \"[$(1)/$(2)]\"$(NO_CLR)\n";        \
-		printf "$(INFO_CLR)Defined build targets are: $(VALID_OS_ARCH).$(NO_CLR)\n"          \
+	$(if $(findstring [$(1)/$(2)],$(VALID_OS_ARCH)),                                         																							\
+	printf "$(OK_CLR)$(MSG_PRFX) 🏗️Building binary for [$(1)/$(2)]$(MSG_SFX)$(NO_CLR)\n";      																						\
+	printf "$(INFO_CLR)																																																										\
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(1) GOARCH=$(2) $(GO_ENV_FLAGS)\n																																	  \
+		$(GO) build\n 																																																											\
+		-o $(BINARY_PATH)/$(BINARY_PREFIX)-${os.$(1)}-${arch.$(2)}$(call extension,$(GO_OS))\n																							\
+		$(GO_BUILD_FLAGS)\n																																																								 	\
+		-asmflags=\"$(GO_ASM_FLAGS)\"\n																																																			\
+		-gcflags=\"$(GO_GC_FLAGS)\"\n																																																				\
+		-ldflags '$(shell echo $(GO_LINKER_FLAGS) | sed -e 's|extldflags $(EXTLD_FLAGS)|extldflags \\"$(EXTLD_FLAGS)\\"|g' 2> /dev/null)'\n \
+		-tags $(GO_TAGS)\n																																																									\
+		$(GO_FLAGS) $(CMD_DIR)																																																							\
+		$(NO_CLR)\n";                                                                      																									\
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(1) GOARCH=$(2) $(GO_ENV_FLAGS)                       																								\
+		$(GO) build                                                                          																								\
+		-o $(BINARY_PATH)/$(BINARY_PREFIX)-${os.$(1)}-${arch.$(2)}$(call extension,$(GO_OS)) 																								\
+		$(GO_BUILD_FLAGS)                                                                    																								\
+		-asmflags="$(GO_ASM_FLAGS)"                                                          																								\
+		-gcflags="$(GO_GC_FLAGS)"                                                            																								\
+		-ldflags '$(GO_LINKER_FLAGS)'                                                        																								\
+		-tags $(GO_TAGS)                                                                     																								\
+		$(GO_FLAGS) $(CMD_DIR);,                                                             																								\
+		printf "$(ERROR_CLR)No defined build target for: \"[$(1)/$(2)]\"$(NO_CLR)\n";        																								\
+		printf "$(INFO_CLR)Defined build targets are: $(VALID_OS_ARCH).$(NO_CLR)\n"          																								\
 	)
 endef
 
@@ -200,11 +197,11 @@ go-generate: ## to generate Go related files.
 
 go-install: update-pkg-version ## to install the Go related/dependent commands and packages.
 	printf "$(OK_CLR)$(MSG_PRFX) Installing Go related dependencies$(MSG_SFX)$(NO_CLR)\n"
-	$(GO) install                                                               	  \
+	$(GO) install                                                               	  	\
 	    -ldflags "-X $(PKG_NAMESPACE)/$(APP_DIR_NAME)/pkg/version.VERSION=${VERSION}" \
-	    -installsuffix "static"                                                  	  \
-	    -tags $(GO_TAGS)                                                         	  \
-	    -v $(GO_FLAGS)                                                           	  \
+	    -installsuffix "static"                                                  	  	\
+	    -tags $(GO_TAGS)                                                         	  	\
+	    -v $(GO_FLAGS)                                                           	  	\
 	    $(SRC_PKGS) 2>&1
 
 install: ## to install the generated binary.
@@ -227,11 +224,11 @@ uninstall: ## to uninstall generated binary.
 
 update-pkg-version: ## to update package version.
 	printf "$(INFO_CLR)$(MSG_PRFX) Updating Go package version$(MSG_SFX)$(NO_CLR)\n"
-    ifneq ($(wildcard $(PKG_VERSION_DIR)/$(PKG_VERSION_TEMPLATE)),)
+  ifneq ($(wildcard $(PKG_VERSION_DIR)/$(PKG_VERSION_TEMPLATE)),)
 		cp $(PKG_VERSION_DIR)/$(PKG_VERSION_TEMPLATE) $(PKG_VERSION_DIR)/version.go 2>&1
 		echo $(VERSION) > $(VERSION_FILE) 2>&1
 		$(call replaceInFile,{{VERSION}},$(VERSION),$(PKG_VERSION_DIR)/version.go)
-    endif
+  endif
 
 version:  ## to get the current version.
 	printf "$(INFO_CLR)$(MSG_PRFX) Current tagged version$(MSG_SFX)$(NO_CLR)\n"

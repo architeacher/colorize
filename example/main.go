@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/ahmedkamals/colorize"
 	"os"
 	"strings"
@@ -13,9 +12,10 @@ func main() {
 	colorize.IsColorDisabled = *IsColorDisabled // disables/enables colorized output.
 
 	colorized := colorize.NewColorable(os.Stdout)
+	red, _ := colorize.Hex("#81BEF3")
 	style := colorize.Style{
-		Foreground: colorize.RGB(88, 188, 88),
-		Background: colorize.RGB(188, 88, 8),
+		Foreground: colorize.RGB(218, 44, 128),
+		Background: red,
 		Font: []colorize.FontEffect{
 			colorize.Bold,
 			colorize.Italic,
@@ -39,10 +39,10 @@ func main() {
 		colorize.Style{
 			Foreground: colorize.RGB(188, 81, 188),
 		},
-		"\n\nSample Colors [R, G, B]",
-		"\n=======================",
+		"\n\nSample colors in Hexadecimal and RGB",
+		"\n====================================",
 	)
-	println(sample(colorized))
+	println(sampleColors(colorized))
 }
 
 func printDirectColors(colorized *colorize.Colorable) {
@@ -59,34 +59,36 @@ func printDirectColors(colorized *colorize.Colorable) {
 	println(colorized.Yellow("Hello Yellow!"))
 }
 
-func sample(colorized *colorize.Colorable) string {
+func sampleColors(colorized *colorize.Colorable) string {
+	const columns = 10
 	sample := make([]string, 0)
 	for colorIndex := 0; colorIndex <= 255; colorIndex++ {
-		red := uint8((colorIndex + 5) % 256)
-		green := uint8(colorIndex * 3 % 256)
-		blue := uint8(255 - colorIndex)
+		red := byte((colorIndex + 5) % 256)
+		green := byte(colorIndex * 3 % 256)
+		blue := byte(255 - colorIndex)
 
 		style := colorize.Style{
 			Background: colorize.RGB(red, green, blue),
 		}
 		sample = append(
 			sample,
-			colorized.Sprint(
-				style,
-				fmt.Sprintf(
-					" %-3d, %-3d, %-3d ",
-					red,
-					green,
-					blue,
-				),
-			),
+			getSampleContent(colorized, style),
 			" ",
 		)
 
-		if (colorIndex-9)%10 == 0 {
+		if (colorIndex-9)%columns == 0 {
 			sample = append(sample, "\n")
 		}
 	}
 
 	return strings.Join(sample, "")
+}
+
+func getSampleContent(colorized *colorize.Colorable, style colorize.Style) string {
+	return colorized.Sprintf(
+		style,
+		" %-7s  %-13s",
+		style.Background.Hex(),
+		style.Background.RGB(),
+	)
 }

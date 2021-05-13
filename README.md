@@ -1,13 +1,13 @@
 Colorize [![CircleCI](https://circleci.com/gh/ahmedkamals/colorize.svg?style=svg)](https://circleci.com/gh/ahmedkamals/colorize "Build Status")
 ========
 
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE  "License")
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE.md "License")
 [![release](https://img.shields.io/github/v/release/ahmedkamals/colorize.svg)](https://github.com/ahmedkamals/colorize/releases/latest "Release")
 [![Travis CI](https://travis-ci.org/ahmedkamals/colorize.svg)](https://travis-ci.org/ahmedkamals/colorize "Cross Build Status [Linux, OSx]")
-[![Coverage Status](https://coveralls.io/repos/github/ahmedkamals/colorize/badge.svg?branch=master)](https://coveralls.io/github/ahmedkamals/colorize?branch=master  "Code Coverage")
-[![codecov](https://codecov.io/gh/ahmedkamals/colorize/branch/master/graph/badge.svg)](https://codecov.io/gh/ahmedkamals/colorize "Code Coverage")
+[![Coverage Status](https://coveralls.io/repos/github/ahmedkamals/colorize/badge.svg?branch=master)](https://coveralls.io/github/ahmedkamals/colorize?branch=master "Code Coverage")
+[![codecov](https://codecov.io/gh/ahmedkamals/colorize/branch/master/graph/badge.svg?token=nIptKHdnUc)](https://codecov.io/gh/ahmedkamals/colorize "Code Coverage")
 [![GolangCI](https://golangci.com/badges/github.com/ahmedkamals/colorize.svg?style=flat-square)](https://golangci.com/r/github.com/ahmedkamals/colorize "Code Coverage")
-[![Go Report Card](https://goreportcard.com/badge/github.com/ahmedkamals/colorize)](https://goreportcard.com/report/github.com/ahmedkamals/colorize  "Go Report Card")
+[![Go Report Card](https://goreportcard.com/badge/github.com/ahmedkamals/colorize)](https://goreportcard.com/report/github.com/ahmedkamals/colorize "Go Report Card")
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/3c3a84678b4048d29d94f008a985164a)](https://www.codacy.com/manual/ahmedkamals/colorize?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ahmedkamals/colorize&amp;utm_campaign=Badge_Grade "Code Quality")
 [![GoDoc](https://godoc.org/github.com/ahmedkamals/colorize?status.svg)](https://godoc.org/github.com/ahmedkamals/colorize "Documentation")
 [![DepShield Badge](https://depshield.sonatype.org/badges/ahmedkamals/colorize/depshield.svg)](https://depshield.github.io "DepShield")
@@ -36,11 +36,11 @@ Table of Contents
 
 *   [🕸️ Tests](#-tests)
 
-    *   [Benchmarks](#benchmarks)
+    *   [📈 Benchmarks](#-benchmarks)
 
 *   [🤝 Contribution](#-contribution)
 
-    *   [Git Hooks](#git-hooks)
+    *   [⚓ Git Hooks](#-git-hooks)
 
 *   [👨‍💻 Credits](#-credits)
 
@@ -51,12 +51,13 @@ Table of Contents
 
 ### Prerequisites
 
-*   [Golang 1.15 or later][2].
+*   [Golang 1.11 or later][2].
 
 ### Installation
 
 ```bash
 go get -u github.com/ahmedkamals/colorize
+cp .env.sample .env
 ```
 
 ### Examples
@@ -65,94 +66,96 @@ go get -u github.com/ahmedkamals/colorize
 package main
 
 import (
-	"flag"
-	"fmt"
-	"github.com/ahmedkamals/colorize"
-	"os"
-	"strings"
+    "flag"
+    "github.com/ahmedkamals/colorize"
+    "os"
+    "strings"
 )
 
 func main() {
-	var IsColorDisabled = flag.Bool("no-color", false, "Disable color output.")
-	colorize.IsColorDisabled = *IsColorDisabled // disables/enables colorized output.
+    var IsColorDisabled = flag.Bool("no-color", false, "Disable color output.")
+    colorize.IsColorDisabled = *IsColorDisabled // disables/enables colorized output.
 
-	colorized := colorize.NewColorable(os.Stdout)
-	style := colorize.Style{
-		Foreground: colorize.RGB(88, 188, 88),
-		Background: colorize.RGB(188, 88, 8),
-		Font: []colorize.FontEffect{
-			colorize.Bold,
-			colorize.Italic,
-			colorize.Underline,
-			colorize.CrossedOut,
-		},
-	}
+    colorized := colorize.NewColorable(os.Stdout)
+    red, _ := colorize.Hex("#81BEF3")
+    style := colorize.Style{
+        Foreground: colorize.RGB(218, 44, 128),
+        Background: red,
+        Font: []colorize.FontEffect{
+            colorize.Bold,
+            colorize.Italic,
+            colorize.Underline,
+            colorize.CrossedOut,
+        },
+    }
 
-	callback := colorized.SprintlnFunc()
-	print(callback(style, "I am ", "stylish!"))
+    callback := colorized.SprintlnFunc()
+    print(callback(style, "I am ", "stylish!"))
 
-	printDirectColors(colorized)
+    printDirectColors(colorized)
 
-	colorized.Set(colorize.Style{
-		Foreground: colorize.RGB(255, 188, 88),
-		Font:       []colorize.FontEffect{colorize.Bold},
-	})
-	print("Output will be styled.\nTill next reset!")
-	colorized.Reset()
-	colorized.Println(
-		colorize.Style{
-			Foreground: colorize.RGB(188, 81, 188),
-		},
-		"\n\nSample Colors [R, G, B]",
-		"\n=======================",
-	)
-	println(sample(colorized))
+    colorized.Set(colorize.Style{
+        Foreground: colorize.RGB(255, 188, 88),
+        Font:       []colorize.FontEffect{colorize.Bold},
+    })
+    print("Output will be styled.\nTill next reset!")
+    colorized.Reset()
+    colorized.Println(
+        colorize.Style{
+            Foreground: colorize.RGB(188, 81, 188),
+        },
+        "\n\nSample colors in Hexadecimal and RGB",
+        "\n====================================",
+    )
+    println(sampleColors(colorized))
 }
 
 func printDirectColors(colorized *colorize.Colorable) {
-	println(colorized.Black("Text in Black!"))
-	println(colorized.Blue("Deep Blue C!"))
-	println(colorized.Cyan("Hi Cyan!"))
-	println(colorized.Gray("Gray logged text!"))
-	println(colorized.Green("50 shades of Green!"))
-	println(colorized.Magenta("Go Magenta!"))
-	println(colorized.Orange("Orange is the new black!"))
-	println(colorized.Purple("The Purple hurdle!"))
-	println(colorized.Red("The thin Red light!"))
-	println(colorized.White("Twice White!"))
-	println(colorized.Yellow("Hello Yellow!"))
+    println(colorized.Black("Text in Black!"))
+    println(colorized.Blue("Deep Blue C!"))
+    println(colorized.Cyan("Hi Cyan!"))
+    println(colorized.Gray("Gray logged text!"))
+    println(colorized.Green("50 shades of Green!"))
+    println(colorized.Magenta("Go Magenta!"))
+    println(colorized.Orange("Orange is the new black!"))
+    println(colorized.Purple("The Purple hurdle!"))
+    println(colorized.Red("The thin Red light!"))
+    println(colorized.White("Twice White!"))
+    println(colorized.Yellow("Hello Yellow!"))
 }
 
-func sample(colorized *colorize.Colorable) string {
-	sample := make([]string, 0)
-	for colorIndex := 0; colorIndex <= 255; colorIndex++ {
-		red := uint8((colorIndex + 5) % 256)
-		green := uint8(colorIndex * 3 % 256)
-		blue := uint8(255 - colorIndex)
+func sampleColors(colorized *colorize.Colorable) string {
+    const columns = 10
+    sample := make([]string, 0)
+    for colorIndex := 0; colorIndex <= 255; colorIndex++ {
+        red := byte((colorIndex + 5) % 256)
+        green := byte(colorIndex * 3 % 256)
+        blue := byte(255 - colorIndex)
 
-		style := colorize.Style{
-			Background: colorize.RGB(red, green, blue),
-		}
-		sample = append(
-			sample,
-			colorized.Sprint(
-				style,
-				fmt.Sprintf(
-					" %-3d, %-3d, %-3d ",
-					red,
-					green,
-					blue,
-				),
-			),
-			" ",
-		)
+        style := colorize.Style{
+            Background: colorize.RGB(red, green, blue),
+        }
+        sample = append(
+            sample,
+            getSampleContent(colorized, style),
+            " ",
+        )
 
-		if (colorIndex-9)%10 == 0 {
-			sample = append(sample, "\n")
-		}
-	}
+        if (colorIndex-9)%columns == 0 {
+            sample = append(sample, "\n")
+        }
+    }
 
-	return strings.Join(sample, "")
+    return strings.Join(sample, "")
+}
+
+func getSampleContent(colorized *colorize.Colorable, style colorize.Style) string {
+    return colorized.Sprintf(
+        style,
+        " %-7s  %-13s",
+        style.Background.Hex(),
+        style.Background.RGB(),
+    )
 }
 ```
 
@@ -165,7 +168,7 @@ func sample(colorized *colorize.Colorable) string {
 make test
 ```
 
-### Benchmarks
+### 📈 Benchmarks
 
 ![Benchmarks](https://github.com/ahmedkamals/colorize/raw/master/assets/img/bench.png "Benchmarks")
 ![Flamegraph](https://github.com/ahmedkamals/colorize/raw/master/assets/img/flamegraph.png "Benchmarks Flamegraph")
@@ -173,31 +176,29 @@ make test
 🤝 Contribution
 ---------------
 
-Please refer to the [`CONTRIBUTING.md`](https://github.com/ahmedkamals/colorize/blob/master/CONTRIBUTING.md) file.
+Please refer to the [`CONTRIBUTING.md`](https://github.com/ahmedkamals/colorize/blob/master/CONTRIBUTING.md "Contribution") file.
 
-### Git Hooks
+### ⚓ Git Hooks
 
 In order to set up tests running on each commit do the following steps:
 
 ```bash
-ln -sf ../../assets/git/hooks/pre-commit.sh .git/hooks/pre-commit && \
-ln -sf ../../assets/git/hooks/pre-push.sh .git/hooks/pre-push     && \
-ln -sf ../../assets/git/hooks/commit-msg.sh .git/hooks/commit-msg
+git config --local core.hooksPath .githooks
 ```
 
 👨‍💻 Credits
 ----------
 
 *   [ahmedkamals][3]
-*   Inspired by @fatih: [color](https://github.com/fatih/color)
-*   Terminal support @mattn: [isatty](https://github.com/mattn/go-isatty)
+*   Inspired by @fatih: [color](https://github.com/fatih/color "color")
+*   Terminal support @mattn: [isatty](https://github.com/mattn/go-isatty "go-isatty")
 
 🆓 LICENSE
 ----------
 
-Colorize is released under MIT license, please refer to the [`LICENSE.md`](https://github.com/ahmedkamals/colorize/blob/master/LICENSE.md) file.
+Colorize is released under MIT license, please refer to the [`LICENSE.md`](https://github.com/ahmedkamals/colorize/blob/master/LICENSE.md "License") file.
 
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fahmedkamals%2Fcolorize.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fahmedkamals%2Fcolorize?ref=badge_large)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fahmedkamals%2Fcolorize.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fahmedkamals%2Fcolorize?ref=badge_large "Dependencies")
 
 Happy Coding 🙂
 

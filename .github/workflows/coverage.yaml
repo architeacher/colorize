@@ -2,14 +2,18 @@ name: Coverage
 on:
   push:
     branches:
+      - main
       - master
+      - stable
     paths:
       - '**.go'
       - 'go.mod'
       - '**.yaml'
   pull_request:
     branches:
+      - main
       - master
+      - stable
     paths-ignore:
       - "**.md"
       - "assets/**"

@@ -1,3 +1,10 @@
+define displayProjectLogo
+    # http://patorjk.com/software/taag/#p=testall&f=Slant&t=PROJECT_NAME
+    printf "$(1)"
+    cat assets/logo.txt 2> /dev/null || echo $(PROJECT_NAME)
+    printf "$(NO_CLR)\n"
+endef
+
 utils: clean format help list list-modules nuke
 
 clean: clean-bin clean-coverage clean-version clean-tests ## to clean up all generated directories/files.
@@ -7,7 +14,7 @@ format: ## to format all Go files.
 	test -z "$$($(GO_FMT) -s -l -w $(GO_FLAGS) $(GO_FILES) 2>&1 | tee /dev/stderr)"
 
 help: ## to get help about the targets.
-	$(call PROJECT_LOGO,$(OK_CLR)) 2>&1
+	$(call displayProjectLogo,$(OK_CLR)) 2>&1
 	printf "$(INFO_CLR)Please use \`make <target>\`, Available options for <target> are:$(NO_CLR)\n"
 	awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z._-]+:.*?## .*$$/ {sub("\\\\n", sprintf("\n%22c"," "), $$2); printf "  $(STAR) $(HELP_CLR)%-28s$(NO_CLR) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort -u 2>&1
 	printf "\n$(INFO_CLR)Useful variables:$(NO_CLR)\n"
@@ -19,6 +26,9 @@ list: ## to list all targets.
 list-modules: ## to list go modules.
 	printf "$(WARN_CLR)$(MSG_PRFX) ℹ️ Installed Go modules$(MSG_SFX)$(NO_CLR)\n"
 	$(GO) list -u -m all 2>&1
+
+print-%: ## to print arbitrary variables use `print-VARNAME`
+	echo "$(DISCLAIMER_CLR)$*$(NO_CLR) = $($*)"
 
 nuke: clean ## to do clean up and enforce removing the corresponding installed archive or binary.
 	printf "$(WARN_CLR)$(MSG_PRFX) 🧹 Cleaning up Go dependencies$(MSG_SFX)$(NO_CLR)\n"
