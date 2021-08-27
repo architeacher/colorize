@@ -8,16 +8,16 @@ alias:
       VALIDATE: true
     working_directory: /go/src/github.com/ahmedkamals/colorize
     docker:
-      - image: circleci/golang:1.16.3
+      - image: circleci/golang:1.17
         environment:
           GOPATH: "/go"
           GO111MODULE: "on"
+          DOCKER_USER: "ahmedkamals"
+          GITHUB_API: "https://api.github.com"
           REPO_NAME: "ahmedkamals"
           IMAGE_NAME: "colorize"
-          GITHUB_API: "https://api.github.com/"
-          DOCKER_USER: "ahmedkamals"
   setup_remote_docker: &setup_remote_docker
-    version: 19.03.12-ce
+    version: 20.10.8-ce
     docker_layer_caching: true
 
 jobs:
@@ -113,7 +113,9 @@ workflows:
             - unit
           filters:
             branches:
-              only: master
+              only:
+                - main
+                - master
       - push:
           context:
             - "Github"

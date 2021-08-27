@@ -63,9 +63,9 @@ func sampleColors(colorized *colorize.Colorable) string {
 	const columns = 10
 	sample := make([]string, 0)
 	for colorIndex := 0; colorIndex <= 255; colorIndex++ {
-		red := uint8((colorIndex + 5) % 256)
-		green := uint8(colorIndex * 3 % 256)
-		blue := uint8(255 - colorIndex)
+		red := byte((colorIndex + 5) % 256)
+		green := byte(colorIndex * 3 % 256)
+		blue := byte(255 - colorIndex)
 
 		style := colorize.Style{
 			Background: colorize.RGB(red, green, blue),

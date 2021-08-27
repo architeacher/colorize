@@ -4,7 +4,8 @@ go_import_path: github.com/ahmedkamals/colorize
 
 branches:
   only:
-    # Pushes and PR to the master branch
+    # Pushes and PR to the following branches.
+    - main
     - master
     - stable
     # IMPORTANT Ruby regex to match tags. Required, or travis won't trigger deploys when a new tag
@@ -26,13 +27,13 @@ jobs:
   fast_finish: true
   include:
     - stage: Coverage
-      go: "1.16"
+      go: "1.17"
       env: COVERAGE=true
       install:
         - make get-deps
     - &integration-tests
       stage: Integration tests
-      go: 1.16.x
+      go: 1.17.x
       os: linux
       env:
         - Build=true

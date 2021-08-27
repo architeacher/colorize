@@ -2,14 +2,18 @@ name: Build
 on:
   push:
     branches:
+      - main
       - master
+      - stable
     paths:
       - '**.go'
       - 'go.mod'
       - '**.yaml'
   pull_request:
     branches:
+      - main
       - master
+      - stable
     paths-ignore:
       - "**.md"
       - "assets/**"
@@ -22,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go_version: [~1.15, ^1]
+        go_version: [~1.11, ^1]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:

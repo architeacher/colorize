@@ -6,17 +6,17 @@ import (
 )
 
 type (
-	colorMode uint8
+	colorMode byte
 
 	// Color representation interface.
 	Color interface {
 		Comparable
 		Formatter
 		fmt.Stringer
-		Red() uint8
-		Green() uint8
-		Blue() uint8
-		Alpha() uint8
+		Red() byte
+		Green() byte
+		Blue() byte
+		Alpha() byte
 		Hex() string
 		RGB() string
 	}
@@ -49,19 +49,19 @@ const (
 	hexadecimalShortFormatLength = 4
 )
 
-func (clr color) Red() uint8 {
+func (clr color) Red() byte {
 	return clr.rgba.R
 }
 
-func (clr color) Green() uint8 {
+func (clr color) Green() byte {
 	return clr.rgba.G
 }
 
-func (clr color) Blue() uint8 {
+func (clr color) Blue() byte {
 	return clr.rgba.B
 }
 
-func (clr color) Alpha() uint8 {
+func (clr color) Alpha() byte {
 	return clr.rgba.A
 }
 

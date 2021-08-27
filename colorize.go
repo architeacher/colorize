@@ -22,7 +22,7 @@ type (
 )
 
 // Font effects.
-// Some of the effects are not supported on all terminals.
+// Some effects are not supported on all terminals.
 const (
 	Normal FontEffect = iota
 	Bold
@@ -44,8 +44,8 @@ var (
 		(!isatty.IsTerminal(os.Stdout.Fd()) && !isatty.IsCygwinTerminal(os.Stdout.Fd()))
 	colorDisabledMux sync.Mutex // protects colorDisabled
 
-	// colorCache is used to reduce the count of created Style objects and
-	// allows to reuse already created objects with required Attribute.
+	// colorCache is used to reduce the count of created Style objects, and
+	// it allows to reuse already created objects with required Attribute.
 	colorCache sync.Map
 )
 
@@ -73,7 +73,7 @@ func (c *Colorable) DisableColor() *Colorable {
 
 // EnableColor to re-enable colored output
 // used in conjunction with DisableColor().
-// Otherwise it will have no side effect.
+// Otherwise, it will have no side effect.
 func (c *Colorable) EnableColor() *Colorable {
 	c.isColorActive = boolPtr(true)
 
@@ -93,7 +93,7 @@ func (c *Colorable) Reset() *Colorable {
 	return c.unsetWriter(c.output, c.appliedStyle)
 }
 
-// Fprint acts as the the standard fmt.Fprint() method, wrapped with the given style.
+// Fprint acts as the standard fmt.Fprint() method, wrapped with the given style.
 func (c *Colorable) Fprint(w io.Writer, style Style, s ...interface{}) (n int, err error) {
 	c.setWriter(w, style)
 	defer c.unsetWriter(w, style)
@@ -101,7 +101,7 @@ func (c *Colorable) Fprint(w io.Writer, style Style, s ...interface{}) (n int, e
 	return fmt.Fprint(w, s...)
 }
 
-// Fprintf acts as the the standard fmt.Fprintf() method, wrapped with the given style.
+// Fprintf acts as the standard fmt.Fprintf() method, wrapped with the given style.
 func (c *Colorable) Fprintf(w io.Writer, style Style, format string, s ...interface{}) (n int, err error) {
 	c.setWriter(w, style)
 	defer c.unsetWriter(w, style)
@@ -109,7 +109,7 @@ func (c *Colorable) Fprintf(w io.Writer, style Style, format string, s ...interf
 	return fmt.Fprintf(c.output, format, s...)
 }
 
-// Fprintln acts as the the standard fmt.Fprintln() method, wrapped with the given style.
+// Fprintln acts as the standard fmt.Fprintln() method, wrapped with the given style.
 func (c *Colorable) Fprintln(w io.Writer, style Style, s ...interface{}) (n int, err error) {
 	c.setWriter(w, style)
 	defer c.unsetWriter(w, style)
@@ -117,32 +117,32 @@ func (c *Colorable) Fprintln(w io.Writer, style Style, s ...interface{}) (n int,
 	return fmt.Fprintln(c.output, s...)
 }
 
-// Print acts as the the standard fmt.Print() method, wrapped with the given style.
+// Print acts as the standard fmt.Print() method, wrapped with the given style.
 func (c *Colorable) Print(style Style, s ...interface{}) (n int, err error) {
 	return c.Fprint(c.output, style, s...)
 }
 
-// Printf acts as the the standard fmt.Printf() method, wrapped with the given style.
+// Printf acts as the standard fmt.Printf() method, wrapped with the given style.
 func (c *Colorable) Printf(style Style, format string, s ...interface{}) (n int, err error) {
 	return c.Fprintf(c.output, style, format, s...)
 }
 
-// Println acts as the the standard fmt.Println() method, wrapped with the given style.
+// Println acts as the standard fmt.Println() method, wrapped with the given style.
 func (c *Colorable) Println(style Style, s ...interface{}) (n int, err error) {
 	return c.Fprintln(c.output, style, s...)
 }
 
-// Sprint acts as the the standard fmt.Sprint() method, wrapped with the given style.
+// Sprint acts as the standard fmt.Sprint() method, wrapped with the given style.
 func (c *Colorable) Sprint(style Style, s ...interface{}) string {
 	return c.wrap(style, fmt.Sprint(s...))
 }
 
-// Sprintf acts as the the standard fmt.Sprintf() method, wrapped with the given style.
+// Sprintf acts as the standard fmt.Sprintf() method, wrapped with the given style.
 func (c *Colorable) Sprintf(style Style, format string, s ...interface{}) string {
 	return c.wrap(style, fmt.Sprintf(format, s...))
 }
 
-// Sprintln acts as the the standard fmt.Sprintln() method, wrapped with the given style.
+// Sprintln acts as the standard fmt.Sprintln() method, wrapped with the given style.
 func (c *Colorable) Sprintln(style Style, s ...interface{}) string {
 	return c.wrap(style, fmt.Sprintln(s...))
 }
@@ -310,7 +310,7 @@ func boolPtr(v bool) *bool {
 
 // getCachedColorValue returns a new/cached Color instance
 // to reduce to amount of the created color objects.
-func getCachedColorValue(red, green, blue, alpha uint8) Color {
+func getCachedColorValue(red, green, blue, alpha byte) Color {
 	cacheKey := fmt.Sprintf(
 		"%d.%d.%d.%d",
 		red,
@@ -330,7 +330,7 @@ func getCachedColorValue(red, green, blue, alpha uint8) Color {
 }
 
 // RGB returns a new/cached instance of the Color.
-func RGB(red, green, blue uint8) Color {
+func RGB(red, green, blue byte) Color {
 	return getCachedColorValue(red, green, blue, 0x00)
 }
 
@@ -338,16 +338,16 @@ func RGB(red, green, blue uint8) Color {
 func Hex(color string) (Color, error) {
 	format, factor := getHexFormatFactor(color)
 
-	var red, green, blue uint8
+	var red, green, blue byte
 	_, err := fmt.Sscanf(color, format, &red, &green, &blue)
 	if err != nil {
 		return nil, err
 	}
 
 	return getCachedColorValue(
-			uint8(float64(red)*factor),
-			uint8(float64(green)*factor),
-			uint8(float64(blue)*factor),
+			byte(float64(red)*factor),
+			byte(float64(green)*factor),
+			byte(float64(blue)*factor),
 			0x00,
 		),
 		nil
@@ -365,7 +365,7 @@ func getHexFormatFactor(color string) (format string, factor float64) {
 }
 
 // createColor returns Color instance.
-func createColor(red, green, blue, alpha uint8) Color {
+func createColor(red, green, blue, alpha byte) Color {
 	return color{
 		rgba: baseColor.RGBA{
 			R: red,
@@ -376,7 +376,7 @@ func createColor(red, green, blue, alpha uint8) Color {
 	}
 }
 
-func getForegroundStyle(red, green, blue uint8) Style {
+func getForegroundStyle(red, green, blue byte) Style {
 	return Style{
 		Foreground: RGB(red, green, blue),
 	}

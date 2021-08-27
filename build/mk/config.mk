@@ -31,6 +31,12 @@ DEPENDENCIES := golang.org/x/lint/golint                 \
                 github.com/mattn/goveralls               \
                 github.com/wadey/gocovmerge
 
+## Path to .env file.
+DOT_ENV_FILE ?= $(CURDIR)/.env
+
+## To echo recipes, you can do "make ECHO_RECIPES=true".
+ECHO_RECIPES ?= false
+
 ## To disable root, you can do "make SUDO=".
 SUDO ?= $(shell echo "sudo -E" 2> /dev/null)
 
@@ -54,7 +60,7 @@ ARCH ?= amd64
 ## Extra flags to pass to 'go' when building.
 GO_FLAGS ?=
 
-## Version file path
+## Version file path.
 VERSION_FILE ?= $(CURDIR)/.version
 
 ## Current version.
@@ -147,10 +153,3 @@ BLOCK_TRACE_PROFILE ?= $(TRACE_TESTS_PATH)/block.out
 MUTEX_TRACE_PROFILE ?= $(TRACE_TESTS_PATH)/mutex.out
 # Execution trace profile path.
 EXEC_TRACE_PROFILE ?= $(TRACE_TESTS_PATH)/trace.out
-
-define PROJECT_LOGO
-    # http://patorjk.com/software/taag/#p=display&f=Slant&t=Colorize
-    printf "$(1)"
-    cat assets/logo.txt
-    printf "$(NO_CLR)\n"
-endef

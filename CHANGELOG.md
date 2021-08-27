@@ -4,6 +4,7 @@
 -   [v1.1.1](#v111)
 -   [v1.1.2](#v112)
 -   [v1.2.0](#v120)
+-   [v1.2.1](#v121)
 
 <!-- NEW RELEASE NOTES ENTRY -->
 
@@ -32,3 +33,7 @@
 ## v1.2.0
 
 -   Adding support of hexadecimal colors.
+
+## v1.2.1
+
+-   Updating dependencies versions.
