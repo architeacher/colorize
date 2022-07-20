@@ -26,52 +26,59 @@ test "" = "$(grep '^Signed-off-by: ' "$1" |
 if grep -q -i -e "WIP" -e "work in progress" "$1"; then
     read -n 1 -r -p "You're about to add a WIP commit, do you want to run the CI? [y|n] " < /dev/tty
     echo
-    if echo "$REPLY" | grep -E '^[Nn]$' > /dev/null; then
+    if echo "${REPLY}" | grep -E '^[Nn]$' > /dev/null; then
         echo "[Skipping CI]" >> "$1"
     fi
 fi
 
-if ! grep -qE "^:[a-z0-9_-]+:" "$1"; then
-    read -n 1 -r -p "You're about to commit without an icon, do you want to continue? [y|n] " < /dev/tty
-    echo
-    if echo "$REPLY" | grep -E '^[Nn]$' > /dev/null; then
-        echo "Skipping commit message's icon check."
-        exit 1
-    fi
+checkCommitMessage() {
+  local pattern="${1}" \
+        commit_message_file="${2}" \
+        question="${3}" \
+        skip_message="${4}"
+
+  if ! grep -qE "${pattern}" "${commit_message_file}"; then
+      read -n 1 -r -p "${pattern}> ${question} " < /dev/tty
+      echo
+      if echo "${REPLY}" | grep -E '^[Nn]$' > /dev/null; then
+          echo "${skip_message}"
+          exit 1
+      fi
+  fi
+}
+
+# See: https://stackoverflow.com/a/73171901/810782
+pattern="^(?:(?:Initial commit\.?)|(?:Merge [^\r\n]+)|(?:build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|¯\\_\(ツ\)_\/¯)(?:\((?:[\w-]+)\))?(?:\!)?: "
+
+# As the grep command in OSx is not a GNU compatible, as a result it won't support lookahead,
+# and we have positive backward lookahead. So we have to modify the condition in this case.
+if [ "$(uname -s | tr '[:upper:]' '[:lower:]')" = 'darwin' ]; then
+  pattern+="[[:alnum:][:blank:][:punct:]]+)$"
+else
+  pattern+="(?:[\w ,'.\`:-]+)(?<=\v\v){0,2}(?:[\w\s,'.\`\[\]-]+)(?:(?<=\v\v)(?:(?:[\w\s-]+): (?:[\w -\`]+))+|$))"
 fi
 
-if ! grep -qE "^:[a-z0-9_-]+:\s+.*" "$1"; then
-    read -n 1 -r -p "You're about to commit without a commit message, do you want to continue? [y|n] " < /dev/tty
-    echo
-    if echo "$REPLY" | grep -E '^[Nn]$' > /dev/null; then
-        echo "Skipping commit message's check."
-        exit 1
-    fi
-fi
+checkCommitMessage "${pattern}" \
+  "${1}" \
+  "You're about to commit that's not matching conventional commits (https://www.conventionalcommits.org/en/v1.0.0/) style, do you want to continue? [y|n]" \
+  "Skipping commit message's format check."
 
-if ! grep -iqE "\.$" "$1"; then
-    read -n 1 -r -p "You're about to commit without ending with full stop, do you want to continue? [y|n] " < /dev/tty
-    echo
-    if echo "$REPLY" | grep -E '^[Nn]$' > /dev/null; then
-        echo "Skipping commit message's format check."
-        exit 1
-    fi
-fi
+checkCommitMessage ".*:[a-z0-9_-]+:.*" \
+  "${1}" \
+  "You're about to commit without an icon, do you want to continue? [y|n]" \
+  "Skipping commit message's icon check."
 
-if ! grep -qE ".*\[(major|minor|patch)\].*" "$1"; then
-    read -n 1 -r -p "You're about to commit without release type [major|minor|patch], do you want to continue? [y|n] " < /dev/tty
-    echo
-    if echo "$REPLY" | grep -E '^[Nn]$' > /dev/null; then
-        echo "Skipping commit message's release check."
-        exit 1
-    fi
-fi
+checkCommitMessage "\.$" \
+  "${1}" \
+  "You're about to commit without ending with full stop, do you want to continue? [y|n]" \
+  "Skipping commit message's ending format check."
 
-if ! grep -qE ".*Signed-off-by:\s.*" "$1"; then
-    read -n 1 -r -p "You're about to commit a non-signed commit, do you want to continue? [y|n] " < /dev/tty
-    echo
-    if echo "$REPLY" | grep -E '^[Nn]$' > /dev/null; then
-        echo "Skipping commit message's signage check."
-        exit 1
-    fi
-fi
+checkCommitMessage ".*\[(major|minor|patch)\].*" \
+  "${1}" \
+  "You're about to commit without release type [major|minor|patch], do you want to continue? [y|n]" \
+  "Skipping commit message's release check."
+
+checkCommitMessage ".*Signed-off-by: .*" \
+  "${1}" \
+  "You're about to commit a non-signed commit, do you want to continue? [y|n]" \
+  "Skipping commit message's signage check."

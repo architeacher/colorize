@@ -1,6 +1,6 @@
 language: go
 
-go_import_path: github.com/ahmedkamals/colorize
+go_import_path: github.com/architeacher/colorize
 
 branches:
   only:
@@ -27,13 +27,13 @@ jobs:
   fast_finish: true
   include:
     - stage: Coverage
-      go: "1.17"
+      go: "1.19"
       env: COVERAGE=true
       install:
-        - make get-deps
+        - make deps
     - &integration-tests
       stage: Integration tests
-      go: 1.17.x
+      go: 1.19.x
       os: linux
       env:
         - Build=true

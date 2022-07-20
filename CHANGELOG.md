@@ -1,10 +1,11 @@
--   [v1.0.0](#v100)
--   [v1.0.1](#v101)
--   [v1.1.0](#v110)
--   [v1.1.1](#v111)
--   [v1.1.2](#v112)
--   [v1.2.0](#v120)
--   [v1.2.1](#v121)
+- [v1.0.0](#v100)
+- [v1.0.1](#v101)
+- [v1.1.0](#v110)
+- [v1.1.1](#v111)
+- [v1.1.2](#v112)
+- [v1.2.0](#v120)
+- [v1.2.1](#v121)
+- [v1.3.0](#v130)
 
 <!-- NEW RELEASE NOTES ENTRY -->
 
@@ -28,12 +29,18 @@
 
 ## v1.1.2
 
--   Reducing go version requirement.
+- Reducing go version requirement.
 
 ## v1.2.0
 
--   Adding support of hexadecimal colors.
+- Adding support of hexadecimal colors.
 
 ## v1.2.1
 
--   Updating dependencies versions.
+- Updating dependencies versions.
+
+## v1.3.0
+
+- Adding support for direct background colors.
+- Refactoring
+- Changing Circleci configurations.

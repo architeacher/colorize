@@ -17,11 +17,11 @@ exec 1>&2
 # Cross platform projects tend to avoid non-ASCII filenames; prevent
 # them from being added to the repository. We exploit the fact that the
 # printable range starts at the space character and ends with tilde.
-if [ "$allownonascii" != "true" ] &&
+if [ "${allownonascii}" != "true" ] &&
 	# Note that the use of brackets around a tr range is ok here, (it's
 	# even required, for portability to Solaris 10's /usr/bin/tr), since
 	# the square bracket bytes happen to fall in the designated range.
-	test $(git diff --cached --name-only --diff-filter=A -z "$against" |
+	test $(git diff --cached --name-only --diff-filter=A -z "${against}" |
 	  LC_ALL=C tr -d '[ -~]\0' | wc -c) != 0
 then
 	cat <<\EOF
@@ -39,15 +39,15 @@ EOF
 fi
 
 # Check if committing to a protected branch.
-protected_branches=('main' 'master')
-current_branch="$(git rev-parse --abbrev-ref HEAD | sed -e 's,.*/\(.*\),\1,')"
+protected_branches=('main' 'master' 'stable')
+current_branch="$(git rev-parse --abbrev-ref HEAD | sed -e 's,.*/\(.*\),\1,' 2>&1)"
 
 for protected_branch in "${protected_branches[@]}"
 do
-  if [ "$current_branch" = "$protected_branch" ]; then
+  if [ "${current_branch}" = "${protected_branch}" ]; then
       read -p "You're about to commit to a protected branch \"${protected_branch}\", is that what you intended? [y|n] " -n 1 -r < /dev/tty
       echo
-      if echo "$REPLY" | grep -E '^[Nn]$' > /dev/null; then
+      if echo "${REPLY}" | grep -E '^[Nn]$' > /dev/null; then
           exit 1 # commit will not execute
       fi
   fi
@@ -58,27 +58,26 @@ change_log_file="CHANGELOG.md"
 test $(git diff --name-only HEAD | grep -iE ".*${change_log_file}.*" | wc -c) = 0 && {
     read -p "You're about to commit WITHOUT changes in \"${change_log_file}\", is that what you intended? [y|n] " -n 1 -r < /dev/tty
     echo
-    if echo "$REPLY" | grep -E '^[Nn]$' > /dev/null; then
+    if echo "${REPLY}" | grep -E '^[Nn]$' > /dev/null; then
         exit 1 # push will not execute
     fi
 }
 
-
 # Running code validation check.
-validation_check_result=$(make validate)
-test $(echo "$validation_check_result" | grep -iE ".*Error.*" | wc -c) != 0 && {
-  echo "$validation_check_result"
+validation_check_result=$(make validate 2>&1)
+test $(echo "${validation_check_result}" | grep -iE ".*Error.*" | wc -c) != 0 && {
+  echo "${validation_check_result}"
   exit 1
 }
 
-# Running unit tests.
-tests_result=$(make unit)
-test $(echo "$tests_result" | grep -iE ".*Fail.*" | wc -c) != 0 && {
-  echo "$tests_result"
+# Running unit tests (+ race detector).
+tests_result=$(make race GO_FLAGS=-v 2>&1)
+test $(echo "${tests_result}" | grep -iE ".*Fail.*" | wc -c) != 0 && {
+  echo "${tests_result}"
   exit 1
 }
 
 go mod tidy
 
 # If there are whitespace errors, print the offending file names and fail.
-exec git diff-index --check --cached "$against" --
+exec git diff-index --check --cached "${against}" --

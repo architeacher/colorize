@@ -28,7 +28,7 @@ type (
 
 	// Formatter representation interface.
 	Formatter interface {
-		generate(colorMode) string
+		format(string, ...interface{}) string
 	}
 
 	// color for RGB.
@@ -114,10 +114,4 @@ func (clr color) Equals(color Color) bool {
 
 func (clr color) format(format string, args ...interface{}) string {
 	return fmt.Sprintf(format, args...)
-}
-
-// generate returns a string color representation based on
-// given mode (foreground or background).
-func (clr color) generate(mode colorMode) string {
-	return clr.format(colorModeFormat, mode, clr)
 }

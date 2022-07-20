@@ -1,9 +1,10 @@
 package colorize
 
 import (
-	"github.com/stretchr/testify/assert"
 	baseColor "image/color"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestColorEquals(t *testing.T) {

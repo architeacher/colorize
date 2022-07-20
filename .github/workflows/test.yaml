@@ -1,19 +1,16 @@
 name: Test
+
 on:
   push:
-    branches:
-      - main
-      - master
-      - stable
+    branches: [ '*' ]
     paths:
+      - '.github/**'
       - '**.go'
       - 'go.mod'
       - '**.yaml'
+    tags: [ 'v*' ]
   pull_request:
-    branches:
-      - main
-      - master
-      - stable
+    branches: [ '*' ]
     paths-ignore:
       - "**.md"
       - "assets/**"
@@ -21,34 +18,117 @@ on:
 
 jobs:
   test:
-    name: Test on go ${{ matrix.go_version }} and ${{ matrix.os }}
+    name: Test on ${{ matrix.os }} @ Go ${{ matrix.go }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
-        go_version: [^1]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+        # Each major Go release is supported until there are two newer major releases. https://golang.org/doc/devel/release.html#policy
+        # Tests are done against the last three major releases.
+        go: [ ^1, "1.18.x", "1.17.x" ]
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+        include:
+          - go: ^1
+            latest: true
     steps:
-      - name: Install Go ${{ matrix.go_version }}
-        timeout-minutes: 5
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ matrix.go_version }}
-
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
 
-      - name: Cache Go modules
-        uses: actions/cache@v2
+      - name: Setup Go ${{ matrix.go }}
+        timeout-minutes: 5
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Load Cached Dependencies
+        id: cache-go-mod
+        uses: actions/cache@v3
+        env:
+          cache-key: v1
         with:
           path: ~/go/pkg/mod
-          key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
+          key: build-${{ env.cache-key }}-${{ matrix.go }}-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            build-${{ env.cache-key }}-${{ matrix.go }}-${{ runner.os }}-
+            build-${{ env.cache-key }}-${{ matrix.go }}-
+            build-${{ env.cache-key }}-
 
-      - name: Unit
+      - name: Install Dependencies
         run: |
-          make unit
+          make mods-vendor
+
+      - name: Unit (+ race detector)
+        run: |
+          make race
+
+  benchmark:
+    name: Benchmark comparison on ${{ matrix.os }} @ Go ${{ matrix.go }}
+    needs: test
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [ ^1 ]
+        os: [ ubuntu-latest ]
+        include:
+          - go: ^1
+            latest: true
+    steps:
+      - name: Checkout Code (Previous)
+        uses: actions/checkout@v3
+        with:
+          path: previous
+          ref: ${{ github.base_ref }}
+
+      - name: Checkout Code (New)
+        uses: actions/checkout@v3
+        with:
+          path: new
+          ref: ${{ github.ref }}
+
+      - name: Setup Go ${{ matrix.go }}
+        timeout-minutes: 5
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Load Cached Dependencies
+        id: cache-go-mod
+        uses: actions/cache@v3
+        env:
+          cache-key: v1
+        with:
+          path: ~/go/pkg/mod
+          key: build-${{ env.cache-key }}-${{ matrix.go }}-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            build-${{ env.cache-key }}-${{ matrix.go }}-${{ runner.os }}-
+            build-${{ env.cache-key }}-${{ matrix.go }}-
+            build-${{ env.cache-key }}-
+
+      - name: Install Dependencies
+        run: |
+          go install golang.org/x/perf/cmd/benchstat@latest
+
+      - name: Run Benchmark (Previous)
+        run: |
+          cd previous
+          go test -run="-" -bench=".*" -count=8 ./... | tee benchmark.txt
+      - name: Run Benchmark (New)
+        run: |
+          cd new
+          go test -run="-" -bench=".*" -count=8 ./... | tee benchmark.txt
+      - name: Run Benchstat
+        run: |
+          benchstat previous/benchmark.txt new/benchmark.txt | tee -a bench-stats.txt
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bench-stats
+          path: bench-stats.txt

@@ -32,14 +32,25 @@ Error message, actual behaviour, etc. Full stack traces much appreciated.
 
 <!-- Specific steps, as minimally and precisely as possible. -->
 
+## Working code to debug
+
+```go
+package main
+
+func main() {
+}
+```
+
+## Version/commit
+
 ## Anything else we need to know
 
 ## Environment
 
--   OS (e.g. from /etc/os-release)
--   Kernel (e.g. `uname -a`)
--   Install tools
--   Others
+- OS (e.g. from /etc/os-release)
+- Kernel (e.g. `uname -a`)
+- Install tools
+- Others
 
 <!--
 Additional information you deem important

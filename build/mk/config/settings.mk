@@ -18,17 +18,14 @@ ITEM_CLR := ${OLIVE}
 LIST_CLR := ${ORANGE}
 WARN_CLR := ${YELLOW}
 
-STAR := ${ITEM_CLR}[${NO_CLR}${INFO_CLR}*${NO_CLR}${ITEM_CLR}]${NO_CLR}
+STAR := ${ITEM_CLR}[${NO_CLR}${LIST_CLR}*${NO_CLR}${ITEM_CLR}]${NO_CLR}
 PLUS := ${ITEM_CLR}[${NO_CLR}${WARN_CLR}+${NO_CLR}${ITEM_CLR}]${NO_CLR}
 
 MSG_PRFX := ==>
 MSG_SFX := ...
 
-DEPENDENCIES := golang.org/x/lint/golint                 \
-                golang.org/x/tools/cmd/cover             \
-                github.com/client9/misspell/cmd/misspell \
-                github.com/gordonklaus/ineffassign       \
-                github.com/mattn/goveralls               \
+DEPENDENCIES := github.com/client9/misspell/cmd/misspell \
+                github.com/mattn/goveralls \
                 github.com/wadey/gocovmerge
 
 ## Path to .env file.
@@ -79,7 +76,7 @@ APP_DIR_NAME ?= .
 APP_DIR ?= $(CURDIR)/$(APP_DIR_NAME)
 
 ## Path where the main Go file is located at.
-CMD_DIR ?= $(APP_DIR)/example
+CMD_DIR ?= $(APP_DIR)/cmd/
 
 ## Path where the Go packages are located at.
 PKG_DIR ?= $(APP_DIR)/pkg
@@ -91,10 +88,10 @@ PKG_VERSION_DIR ?= $(PKG_DIR)/version
 PKG_VERSION_TEMPLATE ?= version-template.go.dist
 
 ## Set an output prefix, which is the local directory if not specified.
-ARTIFACTS_PATH ?= $(CURDIR)/.artifacts
+ARTIFACTS_DIR ?= ${CURDIR}/.artifacts
 
 ## Set the binary directory, where the compiled should go to.
-BINARY_PATH ?= ${ARTIFACTS_PATH}/bin
+BINARY_DIR ?= ${ARTIFACTS_DIR}/bin
 
 ## Set the binary file name prefix.
 BINARY_PREFIX ?= $(shell basename $(CURDIR) 2> /dev/null)
@@ -103,26 +100,14 @@ BINARY_PREFIX ?= $(shell basename $(CURDIR) 2> /dev/null)
 INSTALLATION_BASE_PATH ?= /usr/local/bin
 
 ## Go generated files.
-GO_GENERATED_DIR=.go
+GO_GENERATED_DIR = ${ARTIFACTS_DIR}/go
+
+## 🐳 Should use containers locally to do build, lint, ... etc.
+CONTAINERIZE ?= false
 
 # Tests
 ## Set tests path.
 TESTS_PATH ?= $(GO_GENERATED_DIR)/tests
-
-## Bench tests path.
-BENCH_TESTS_PATH ?= $(TESTS_PATH)/bench
-## Bench memory profile path.
-BENCH_CPU_PROFILE ?= $(BENCH_TESTS_PATH)/mem.out
-## Bench cpu profile path.
-BENCH_MEMORY_PROFILE ?= $(BENCH_TESTS_PATH)/cpu.out
-## Bench binary profile path.
-BENCH_PROFILE ?= $(BENCH_TESTS_PATH)/profile.bin
-
-## The times that each test and benchmark would run.
-BENCH_TESTS_COUNT ?= 3
-
-## Bench tests timeout.
-BENCH_TEST_TIMEOUT ?= 18m
 
 ## The number of parallel tests.
 PARALLEL_TESTS ?= 8
@@ -136,20 +121,40 @@ TEST_TIME_MULTIPLIER_FLAG ?= timeMultiplier
 ## Test time multiplier value.
 TEST_TIME_MULTIPLIER ?= 1
 
+## Set linter results path.
+LINTER_PROFILE_PATH ?= $(TESTS_PATH)/linter
+LINTER_PROFILE := $(LINTER_PROFILE_PATH)/gl-code-quality-report.json
+
 # Coverage tests
 ## Set coverage mode {atomic|count|set}.
 COVERAGE_MODE ?= atomic
 
-## Set coverage path.
+## Set coverage profile path.
 COVERAGE_PATH ?= $(TESTS_PATH)/coverage
 COVERAGE_PROFILE := $(COVERAGE_PATH)/profile.out
 COVERAGE_HTML := $(COVERAGE_PATH)/index.html
+COVERAGE_TEXT := $(COVERAGE_PATH)/function.out
 
-## Trace tests path.
-TRACE_TESTS_PATH ?= $(TESTS_PATH)/trace
+# Profiling
+## Set profiler path.
+PROFILER_PATH ?= $(GO_GENERATED_DIR)/profiler
+
+## Bench memory profile path.
+BENCH_CPU_PROFILE ?= $(PROFILER_PATH)/mem.out
+## Bench cpu profile path.
+BENCH_MEMORY_PROFILE ?= $(PROFILER_PATH)/cpu.out
+## Bench binary profiler path.
+BENCH_PROFILE ?= $(PROFILER_PATH)/bench.bin
+
+## The times that each test profile and benchmark would run.
+BENCH_PROFILE_COUNT ?= 3
+
+## Bench tests timeout.
+BENCH_PROFILER_TIMEOUT ?= 18m
+
 # Goroutine blocking profile path.
-BLOCK_TRACE_PROFILE ?= $(TRACE_TESTS_PATH)/block.out
+BLOCK_TRACE_PROFILE ?= $(PROFILER_PATH)/blocking.out
 # Mutex contention profile path.
-MUTEX_TRACE_PROFILE ?= $(TRACE_TESTS_PATH)/mutex.out
+MUTEX_TRACE_PROFILE ?= $(PROFILER_PATH)/mutex.out
 # Execution trace profile path.
-EXEC_TRACE_PROFILE ?= $(TRACE_TESTS_PATH)/trace.out
+EXEC_TRACE_PROFILE ?= $(PROFILER_PATH)/trace.out

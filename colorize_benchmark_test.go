@@ -6,13 +6,11 @@ import (
 )
 
 func BenchmarkColorizeDirectColors(b *testing.B) {
-	colorized := NewColorable(os.Stdout)
-
 	b.ReportAllocs()
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			colorized.Purple("purple string.")
+			Purple("purple string.")
 		}
 	})
 }
