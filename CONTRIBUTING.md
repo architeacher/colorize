@@ -7,26 +7,30 @@ to read this guide.
 
 Pull requests should have the following guidelines:
 
-+   Fork it `https://github.com/ahmedkamals/colorize/fork`.
++ Fork it `https://github.com/architeacher/colorize/fork`.
 
-+   Create your feature branch `git checkout -b feature/my-awesome-feature`.
++ Create your feature branch `git checkout -b feature/my-awesome-feature`.
 
-+   Although it is highly suggested including tests, they are not a hard
-    requirement in order to get your contributions accepted.
++ Although it is highly suggested including tests, they are not a hard
+  requirement in order to get your contributions accepted.
 
-+   [To be signed off](https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work)
++ [To be signed off](https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work)
 
-+   Please be generous describing your changes `git commit -am 'Added some feature.'`.
++ Please be generous describing your changes
+  ```bash
+  git commit -S -am "feat(api)!: :tada: Added an awesome feature." -m "[minor]" -m "Signed-off-by: John Doe <john.doe@bar.foo>"
+  ```
+  We follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) specification.
 
-+   A logical series of [**squashed** well written commits](https://github.com/alphagov/styleguides/blob/master/git.md)
++ A logical series of [**squashed** well written commits](https://github.com/alphagov/styleguides/blob/master/git.md)
 
-+   Push your changes `git push origin my-awesome-feature`.
++ Push your changes `git push origin feature/my-awesome-feature`.
 
-+   Create a pull request, and keep it small so other developers can review it quickly.
++ Create a pull request, and keep it small so other developers can review it quickly.
 
-+   Keep each pull request focused on a specific topic. If you have two things
-    to change, create two pull requests.
-    This helps reviewers to understand the meat of your contribution.
++ Keep each pull request focused on a specific topic. If you have two things
+  to change, create two pull requests.
+  This helps reviewers to understand the meat of your contribution.
 
 ## Coding Style
 
@@ -44,37 +48,37 @@ mind when nudging others to comply.
 
 The rules:
 
-1.  All code should be pass validation checks with `make validate`.
+1. All code should be pass validation checks with `make validate` which by default
+   should pass the default levels of [`golangci-lint`](https://golangci-lint.run/).
 
-2.  All code should pass the default levels of [`golint`](https://github.com/golang/lint).
+2. All code should follow the guidelines covered in [Effective Go](http://golang.org/doc/effective_go.html)
+   and [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments).
 
-3.  All code should follow the guidelines covered in [Effective Go](http://golang.org/doc/effective_go.html)
-    and [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments).
+3. Comment the code. Tell us the why, the history and the context.
 
-4.  Comment the code. Tell us the why, the history and the context.
+4. Document _all_ declarations and methods, even private ones. Declare
+   expectations, caveats and anything else that may be important. If a type
+   gets exported, having the comments already there will ensure it's ready.
 
-5.  Document _all_ declarations and methods, even private ones. Declare
-    expectations, caveats and anything else that may be important. If a type
-    gets exported, having the comments already there will ensure it's ready.
+5. Variable name length should be proportional to its context and no longer.
+   `noCommaALongVariableNameLikeThisIsNotMoreClearWhenASimpleCommentWouldDo`.
+   In practice, short methods will have short variable names and globals will
+   have longer names.
 
-6.  Variable name length should be proportional to its context and no longer.
-    `noCommaALongVariableNameLikeThisIsNotMoreClearWhenASimpleCommentWouldDo`.
-    In practice, short methods will have short variable names and globals will
-    have longer names.
+6. No underscores in package names. If you need a compound name, step back,
+   and re-examine why you need a compound name. If you still think you need a
+   compound name, lose the underscore.
 
-7.  No underscores in package names. If you need a compound name, step back,
-    and re-examine why you need a compound name. If you still think you need a
-    compound name, lose the underscore.
+7. No utils or helpers packages. If a function is not general enough to
+   warrant its own package, it has not been written generally enough to be a
+   part of a util package. Just leave it unexported and well-documented.
 
-8.  No utils or helpers packages. If a function is not general enough to
-    warrant its own package, it has not been written generally enough to be a
-    part of a util package. Just leave it unexported and well-documented.
+8.  All tests should run with Go race detection by running `make race`
+    or `go test -race` and outside tooling should not be required.
+    No, we don't need another unit testing framework. Assertion packages are
+    acceptable if they provide _real_ incremental value.
 
-9.  All tests should run with `make test` or `go test` and outside tooling
-    should not be required. No, we don't need another unit testing framework.
-    Assertion packages are acceptable if they provide _real_ incremental value.
-
-10. Even though we call these "rules" above, they are actually just guidelines.
+9. Even though we call these "rules" above, they are actually just guidelines.
     Since you've read all the rules, you now know that.
 
 If you are having trouble getting into the mood of idiomatic Go, we recommend

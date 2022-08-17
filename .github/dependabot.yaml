@@ -1,10 +1,20 @@
 version: 2
 updates:
-- package-ecosystem: "gomod"
-  directory: "/"
-  schedule:
-    interval: "daily"
-  open-pull-requests-limit: 10
-  commit-message:
-    prefix: ":arrow_upper_right: [patch]"
-    include: "scope"
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: '01:00'
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "⬆️\n[patch]"
+      include: "scope"
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "⬆️\n[patch]"
+      include: "scope"

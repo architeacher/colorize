@@ -1,21 +1,23 @@
 package colorize
 
 import (
-	"github.com/stretchr/testify/assert"
+	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEquals(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		id       string
+		name     string
 		input    Style
 		compared Style
 		expected bool
 	}{
 		{
-			id: "Should return true if the styles Foregrounds' are the same.",
+			name: "Should return true if the styles Foregrounds' are the same",
 			input: Style{
 				Foreground: RGB(0, 0, 0),
 			},
@@ -25,7 +27,7 @@ func TestEquals(t *testing.T) {
 			expected: true,
 		},
 		{
-			id: "Should return true if the styles Backgrounds' are the same.",
+			name: "Should return true if the styles Backgrounds' are the same",
 			input: Style{
 				Background: RGB(0, 0, 0),
 			},
@@ -35,13 +37,13 @@ func TestEquals(t *testing.T) {
 			expected: true,
 		},
 		{
-			id:       "Should return true if the styles Fonts' length are the same.",
+			name:     "Should return true if the styles Fonts' length are the same",
 			input:    Style{},
 			compared: Style{},
 			expected: true,
 		},
 		{
-			id: "Should return true if the styles Fonts' length and values are the same.",
+			name: "Should return true if the styles Fonts' length and values are the same, but in different order",
 			input: Style{
 				Font: []FontEffect{Bold, Italic},
 			},
@@ -51,7 +53,7 @@ func TestEquals(t *testing.T) {
 			expected: true,
 		},
 		{
-			id: "Should return true if the styles Foregrounds' and Backgrounds' are the same.",
+			name: "Should return true if the styles Foregrounds' and Backgrounds' are the same",
 			input: Style{
 				Foreground: RGB(0, 0, 0),
 				Background: RGB(255, 255, 255),
@@ -63,7 +65,7 @@ func TestEquals(t *testing.T) {
 			expected: true,
 		},
 		{
-			id: "Should return true if the styles Foregrounds', Backgrounds' and Fonts' are the same.",
+			name: "Should return true if the styles Foregrounds', Backgrounds' and Fonts' are the same",
 			input: Style{
 				Foreground: RGB(0, 0, 0),
 				Background: RGB(255, 255, 255),
@@ -77,7 +79,7 @@ func TestEquals(t *testing.T) {
 			expected: true,
 		},
 		{
-			id:    "Should return false if the styles Foregrounds' are not the same.",
+			name:  "Should return false if the styles Foregrounds' are not the same",
 			input: Style{},
 			compared: Style{
 				Foreground: RGB(0, 0, 0),
@@ -85,7 +87,7 @@ func TestEquals(t *testing.T) {
 			expected: false,
 		},
 		{
-			id: "Should return false if the styles Backgrounds' are not the same.",
+			name: "Should return false if the styles Backgrounds' are not the same",
 			input: Style{
 				Background: RGB(0, 0, 0),
 			},
@@ -93,7 +95,7 @@ func TestEquals(t *testing.T) {
 			expected: false,
 		},
 		{
-			id: "Should return false if the styles Fonts' length are not the same.",
+			name: "Should return false if the styles Fonts' length are not the same",
 			input: Style{
 				Font: []FontEffect{},
 			},
@@ -103,7 +105,7 @@ func TestEquals(t *testing.T) {
 			expected: false,
 		},
 		{
-			id: "Should return false if the styles Fonts' length and values are not the same.",
+			name: "Should return false if the styles Fonts' length and values are not the same",
 			input: Style{
 				Font: []FontEffect{Bold, Italic},
 			},
@@ -113,7 +115,7 @@ func TestEquals(t *testing.T) {
 			expected: false,
 		},
 		{
-			id: "Should return false if the styles Foregrounds' or Backgrounds' are not the same.",
+			name: "Should return false if the styles Foregrounds' or Backgrounds' are not the same",
 			input: Style{
 				Foreground: RGB(0, 0, 0),
 				Background: RGB(255, 255, 255),
@@ -125,7 +127,7 @@ func TestEquals(t *testing.T) {
 			expected: false,
 		},
 		{
-			id: "Should return false if the styles Foregrounds', Backgrounds' or Fonts' are not the same.",
+			name: "Should return false if the styles Foregrounds', Backgrounds' and Fonts' are not the same",
 			input: Style{
 				Foreground: RGB(0, 0, 0),
 				Background: RGB(255, 255, 255),
@@ -140,8 +142,50 @@ func TestEquals(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		t.Run(testCase.id, func(t *testing.T) {
+		t.Run(testCase.name, func(t *testing.T) {
 			assert.Equal(t, testCase.expected, testCase.input.Equals(testCase.compared))
+		})
+	}
+}
+
+func TestFormat(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		input    Style
+		expected string
+	}{
+		{
+			name: "Should return black color foreground as string",
+			input: Style{
+				Foreground: RGB(0, 0, 0),
+			},
+			expected: "\x1b[38;2;0;0;0m",
+		},
+		{
+			name: "Should return black color foreground and white background as string",
+			input: Style{
+				Foreground: RGB(0, 0, 0),
+				Background: RGB(255, 255, 255),
+			},
+			expected: "\x1b[38;2;0;0;0;48;2;255;255;255m",
+		},
+		{
+			name: "Should return black color foreground and white background with italic and bold font as string",
+			input: Style{
+				Foreground: RGB(0, 0, 0),
+				Background: RGB(255, 255, 255),
+				Font:       []FontEffect{Italic, Bold},
+			},
+			expected: "\x1b[38;2;0;0;0;48;2;255;255;255;3;1m",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, testCase.expected, fmt.Sprintf("%v", testCase.input))
 		})
 	}
 }

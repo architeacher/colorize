@@ -18,10 +18,12 @@
 .idea/
 *.iml
 
+.DS_Store
+
 .artifacts/
 .data/
 .docker*
 !.dockerignore
 .env
 .version
-.go
+vendor/

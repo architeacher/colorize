@@ -1,5 +1,0 @@
-# IMPORTANT: Please only use GLOBs to ignore files and directories.
-
-# Do not lint the below bash scripts, in order to
-# avoid breaking the build on make lint:
-.travis/install.sh

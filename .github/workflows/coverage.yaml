@@ -1,14 +1,19 @@
 name: Coverage
+
 on:
   push:
     branches:
       - main
       - master
       - stable
+      - 'v[0-9]+.[0-9]+'
     paths:
+      - '.github/**'
       - '**.go'
       - 'go.mod'
       - '**.yaml'
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
   pull_request:
     branches:
       - main
@@ -21,39 +26,59 @@ on:
 
 jobs:
   coverage:
-    name: Coverage on go ${{ matrix.go_version }} and ${{ matrix.os }}
+    name: Coverage on ${{ matrix.os }} @ Go ${{ matrix.go }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
-        go_version: [^1]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+        go: [ ^1 ]
+        os: [ ubuntu-latest ]
     steps:
-      - name: Install Go ${{ matrix.go_version }}
-        timeout-minutes: 5
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ matrix.go_version }}
-
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
 
-      - name: Cache Go modules
-        uses: actions/cache@v2
+      - name: Setup Go ${{ matrix.go }}
+        timeout-minutes: 5
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Load Cached Dependencies
+        id: cache-go-mod
+        uses: actions/cache@v3
+        env:
+          cache-key: v1
         with:
           path: ~/go/pkg/mod
-          key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
+          key: build-${{ env.cache-key }}-${{ matrix.go }}-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            build-${{ env.cache-key }}-${{ matrix.go }}-${{ runner.os }}-
+            build-${{ env.cache-key }}-${{ matrix.go }}-
+            build-${{ env.cache-key }}-
+
+      - name: Install Dependencies
+        run: |
+          make mods-vendor
 
       - name: Coverage
         run: |
           make coverage-html
 
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v3
         with:
           name: coverage
-          path: .go/tests/coverage/index.html
+          path: ".artifacts/go/tests/coverage/index.html"
+
+      - name: Upload coverage to Codecov
+        if: success() && matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@v3
+        with:
+          env_vars: GO,OS
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_API_KEY }}
+        env:
+          GO: ${{ matrix.go }}
+          OS: ${{ matrix.os }}

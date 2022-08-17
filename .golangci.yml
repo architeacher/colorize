@@ -1,0 +1,44 @@
+linters-settings:
+  cyclop:
+    max-complexity: 15
+  exhaustivestruct:
+    struct-patterns:
+      - '*.Style'
+  gomnd:
+    checks:
+      #      - argument
+      - assign
+      - case
+      - condition
+      #      - operation
+      - return
+  forbidigo:
+    forbid:
+      - ^print.*$
+
+linters:
+  enable-all: true
+  disable:
+    - asasalint
+    - exhaustruct
+    - forcetypeassert
+    - gochecknoglobals
+    - godot
+    - ireturn
+    - wrapcheck
+
+run:
+  concurrency: 15
+  skip-dirs:
+    - .circleci
+    - .github
+    - .githooks
+    - .go
+    - .travis
+    - assets
+    - build
+  tests: false
+  timeout: 3m
+
+output:
+  format: tab

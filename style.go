@@ -49,26 +49,24 @@ func (s Style) Equals(style Style) bool {
 
 // Format to an 24-bit ANSI escape sequence
 // an example output might be: "[38;2;255;0;0m" -> Red color
-func (s Style) Format(fs fmt.State, verb rune) {
+func (s Style) Format(state fmt.State, verb rune) {
 	format := make([]string, 0)
 
 	if s.Foreground != nil {
-		format = append(format, s.Foreground.generate(foreground))
+		format = append(format, s.generate(s.Foreground, foreground))
 	}
 
 	if s.Background != nil {
-		format = append(format, s.Background.generate(background))
+		format = append(format, s.generate(s.Background, background))
 	}
 
-	if s.Font != nil && len(s.Font) > 0 {
-		for _, fontEffect := range s.Font {
-			format = append(format, strconv.FormatInt(int64(fontEffect), 10))
-		}
+	for _, fontEffect := range s.Font {
+		format = append(format, strconv.FormatInt(int64(fontEffect), 10))
 	}
 
 	switch verb {
 	case 's', 'v':
-		fmt.Fprintf(fs, colorFormat, strings.Join(format, ";"))
+		fmt.Fprintf(state, colorFormat, strings.Join(format, ";"))
 	}
 }
 
@@ -76,6 +74,13 @@ func (s Style) String() string {
 	return fmt.Sprintf("%s", s)
 }
 
-func (s Style) resetFormat() string {
+// generate returns a string color representation based on
+// a given mode (foreground or background).
+func (s Style) generate(clr Color, mode colorMode) string {
+	return clr.format(colorModeFormat, mode, clr)
+}
+
+// getResetFormat returns the color reset format.
+func (s Style) getResetFormat() string {
 	return fmt.Sprintf(resetFormat, Normal)
 }

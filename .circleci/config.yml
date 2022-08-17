@@ -2,73 +2,258 @@ version: 2.1
 
 alias:
   default: &default
+    parameters:
+      cache:
+        default: true
+        description: "Whether or not to cache the binary."
+        type: boolean
+      cache-key:
+        default: "v1"
+        description: |
+          String to use in cache key. Typically overridden when needed to bust cache.
+        type: string
+      cache-file:
+        default: "go.sum"
+        description: "The file name of checksum for restore_cache and save_cache."
+        type: string
+      coverage:
+        default: true
+        description: "Whether or not to enable tests coverage."
+        type: boolean
+      go:
+        default: "stable"
+        description: "The Go version."
+        type: string
+      goproxy:
+        default: ""
+        description: "The configuration for GOPROXY."
+        type: string
+      linting:
+        default: true
+        description: "Whether or not to enable Go linter."
+        type: boolean
+      linter-version:
+        default: "latest"
+        description: "The golangci-linter version."
+        type: string
+      profiling:
+        default: true
+        description: "Whether or not to enable Go profiler."
+        type: boolean
+      os:
+        default: "docker"
+        description: "Set the OS executor."
+        type: executor
     environment:
       PROJECT_NAME: "Colorize"
-      COVERAGE: true
-      VALIDATE: true
-    working_directory: /go/src/github.com/ahmedkamals/colorize
-    docker:
-      - image: circleci/golang:1.17
-        environment:
-          GOPATH: "/go"
-          GO111MODULE: "on"
-          DOCKER_USER: "ahmedkamals"
-          GITHUB_API: "https://api.github.com"
-          REPO_NAME: "ahmedkamals"
-          IMAGE_NAME: "colorize"
+      GOPROXY: "<< parameters.goproxy >>"
   setup_remote_docker: &setup_remote_docker
-    version: 20.10.8-ce
-    docker_layer_caching: true
+    version: 20.10.14
+    docker_layer_caching: false
+
+executors:
+  docker:
+    parameters:
+      go:
+        default: "1.19"
+        description: "The Go version."
+        type: string
+    docker:
+      - image: "cimg/go:<< parameters.go >>"
+        auth:
+          username: "${DOCKERHUB_USERNAME}"
+          password: "${DOCKERHUB_PASSWORD}"  # context / project UI env-var reference
+        environment:
+          GITHUB_API: "https://api.github.com"
+          REPO_NAME: "architeacher"
+          IMAGE_NAME: "colorize"
+  linux: # a Linux VM running Ubuntu 22.04
+    machine:
+      image: ubuntu-2204:2022.07.1
 
 jobs:
   linting:
     <<: *default
+    docker:
+      - image: "golangci/golangci-lint:<< parameters.linter-version >>-alpine"
     steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - go-cache-{{ .Branch }}-{{ checksum "go.sum" }}-{{ .Revision }}
-            - go-cache-{{ .Branch }}-{{ checksum "go.sum" }}
-            - go-cache-{{ .Branch }}
-            - go-cache
-      - run:
-          name: Vendor dependencies
-          command: |
-            go mod download
-      - run:
-          name: Validation tests
-          command: |
-            if [ "$VALIDATE" == true ]; then make get-deps validate; else echo 'skipping validation.'; fi
-      - save_cache:
-          key: go-cache-{{ .Branch }}-{{ checksum "go.sum" }}-{{ .Revision }}
-          paths:
-            - ./vendor
+      - when:
+          condition:
+            equal:
+              - << parameters.linting >>
+              - true
+          steps:
+            - checkout
+            - run:
+                name: "Print the Go version"
+                command: >
+                  go version
+            - run:
+                name: "Print the linter version"
+                command: >
+                  golangci-lint --version
+            - run:
+                name: "Install Dependencies"
+                command: |
+                  apk --no-cache add -u jq make
+                  make deps mods-vendor
+            # Only run lint against the latest Go version
+            - run:
+                name: "Run validation (+golang-ci linter)"
+                command: >
+                  make validate
 
-  unit:
+  testing:
     <<: *default
+    executor: << parameters.os >>
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - go-cache-{{ .Branch }}-{{ checksum "go.sum" }}-{{ .Revision }}
-            - go-cache-{{ .Branch }}-{{ checksum "go.sum" }}
-            - go-cache-{{ .Branch }}
-            - go-cache
       - run:
-          name: Unit tests
-          command: |
-            make unit coverage-html
-            if [ "$COVERAGE" == true ]; then bash <(curl -s https://codecov.io/bash) -f .go/tests/coverage/profile.out || true ; else echo 'skipping sending coverage.'; fi
-      - store_artifacts:
-          path: .go/tests/coverage/index.html
-          destination: coverage/profile.html
+          name: "Run unit tests (+ race detector)"
+          command: >
+            make race GO_FLAGS=-v
+
+  coverage:
+    <<: *default
+    executor: << parameters.os >>
+    steps:
+      - when:
+          condition:
+            equal:
+              - << parameters.coverage >>
+              - true
+          steps:
+            - checkout
+            - when:
+                condition:
+                  equal:
+                    - << parameters.cache >>
+                    - true
+                steps:
+                  - restore_cache:
+                      keys:
+                        - >-
+                          go-coverage-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}-{{ checksum "<< parameters.cache-file >>" }}-{{ .Revision }}
+                        - go-coverage-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}-{{ checksum "<< parameters.cache-file >>" }}
+                        - go-coverage-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}
+                        - go-coverage-cache-<< parameters.cache-key >>-<< parameters.go >>
+                        - go-coverage-cache-<< parameters.cache-key >>
+            - run:
+                name: "Print the Go version"
+                command: >
+                  go version
+            - run:
+                name: "Run unit tests (+ coverage)"
+                command: |
+                  make coverage-html GO_FLAGS=-v
+                  bash <(curl -s https://codecov.io/bash) -f ".artifacts/go/tests/coverage/profile.out"
+            - store_artifacts:
+                path: ".artifacts/go/tests/coverage/index.html"
+                destination: coverage/profile.html
+            - when:
+                condition:
+                  equal:
+                    - << parameters.cache >>
+                    - true
+                steps:
+                  - save_cache:
+                      key: go-coverage-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}-{{ checksum "<< parameters.cache-file >>" }}-{{ .Revision }}
+                      paths:
+                        - ".artifacts/go/tests"
+
+  profiling:
+    <<: *default
+    executor: << parameters.os >>
+    steps:
+      - when:
+          condition:
+            equal:
+              - << parameters.profiling >>
+              - true
+          steps:
+            - checkout
+            - when:
+                condition:
+                  equal:
+                    - << parameters.cache >>
+                    - true
+                steps:
+                  - restore_cache:
+                      keys:
+                        - >-
+                          go-profiling-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}-{{ checksum "<< parameters.cache-file >>" }}-{{ .Revision }}
+                        - go-profiling-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}-{{ checksum "<< parameters.cache-file >>" }}
+                        - go-profiling-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}
+                        - go-profiling-cache-<< parameters.cache-key >>-<< parameters.go >>
+                        - go-profiling-cache-<< parameters.cache-key >>
+            - run:
+                name: "Print the Go version"
+                command: >
+                  go version
+            - run:
+                name: "Install Dependencies"
+                command: |
+                  sudo apt-get -y -qq update
+                  sudo apt-get -y -q install graphviz
+            - run:
+                name: "Profiling"
+                command: >
+                  make profile
+            - store_artifacts:
+                path: ".artifacts/go/profiler"
+                destination: profiler
+            - when:
+                condition:
+                  equal:
+                    - << parameters.cache >>
+                    - true
+                steps:
+                  - save_cache:
+                      key: go-profiling-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}-{{ checksum "<< parameters.cache-file >>" }}-{{ .Revision }}
+                      paths:
+                        - ".artifacts/go/profiler"
+
+  build:
+    <<: *default
+    executor: << parameters.os >>
+    steps:
+      - checkout
+      - when:
+          condition:
+            equal:
+              - << parameters.cache >>
+              - true
+          steps:
+            - restore_cache:
+                keys:
+                  - >-
+                    go-build-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}-{{ checksum "<< parameters.cache-file >>" }}-{{ .Revision }}
+                  - go-build-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}-{{ checksum "<< parameters.cache-file >>" }}
+                  - go-build-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}
+                  - go-build-cache-<< parameters.cache-key >>-<< parameters.go >>
+                  - go-build-cache-<< parameters.cache-key >>
+      - run:
+          name: "Building Binary"
+          command: >
+            make build
+      - when:
+          condition:
+            equal:
+              - << parameters.cache >>
+              - true
+          steps:
+            - save_cache:
+                key: go-build-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}-{{ checksum "<< parameters.cache-file >>" }}-{{ .Revision }}
+                paths:
+                  - ".artifacts/bin"
 
   versioning:
     <<: *default
+    executor: << parameters.os >>
     steps:
       - checkout
       - run:
-          name: Versioning
+          name: "Versioning"
           command: |
             bash ./.circleci/versionize.sh
             make version
@@ -79,12 +264,13 @@ jobs:
 
   push:
     <<: *default
+    executor: << parameters.os >>
     steps:
       - attach_workspace:
           at: .
       - run:
-          name: Push tag and check PR body
-          command: |
+          name: "Push tag and check PR body"
+          command: >
             bash ./.circleci/push.sh
       - persist_to_workspace:
           root: .
@@ -93,29 +279,51 @@ jobs:
 
   gh_release:
     <<: *default
+    executor: << parameters.os >>
     steps:
       - attach_workspace:
           at: .
       - run:
-          name: Release
-          command: |
+          name: "Release"
+          command: >
             bash ./.circleci/release.sh
 
 workflows:
   version: 2
-  build:
+  ci:
     jobs:
-      - linting
-      - unit
-      - versioning:
+      - linting:
+          name: "Linting"
+      - testing:
+          name: "Test on << matrix.os >> @ Go << matrix.go >>"
+          matrix:
+            parameters:
+              # Each major Go release is supported until there are two newer major releases. https://golang.org/doc/devel/release.html#policy
+              # Tests are done against the last three major releases.
+              go: [ "1.19", "1.18", "1.17" ]
+              os: [ docker, linux ]
+      - coverage:
+          name: "Coverage"
+      - profiling:
+          name: "Profiling"
+      - build:
+          name: "Build on << matrix.os >> @ Go << matrix.go >>"
+          matrix:
+            parameters:
+              go: [ "1.19", "1.18", "1.17" ]
+              os: [ docker, linux ]
           requires:
             - linting
-            - unit
+            - "Test on << matrix.os >> @ Go << matrix.go >>"
+      - versioning:
+          requires:
+            - build
           filters:
             branches:
               only:
                 - main
                 - master
+                - stable
       - push:
           context:
             - "Github"
