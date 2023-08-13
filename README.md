@@ -67,90 +67,87 @@ package main
 
 import (
     "flag"
-    "fmt"
     "os"
     "strings"
 
     "github.com/architeacher/colorize"
+    "github.com/architeacher/colorize/color"
+    "github.com/architeacher/colorize/option"
+    "github.com/architeacher/colorize/style"
 )
 
 func main() {
-    isColorDisabled := flag.Bool("no-color", false, "Disable colored output.")
+    var IsColorDisabled = flag.Bool("no-color", false, "Disable color output.")
 
-    colorized := colorize.NewColorable(os.Stdout)
-    if *isColorDisabled {
-        colorized.DisableColor()
+    red, _ := color.FromHex("#81BEF3")
+
+    colorized := colorize.NewColorable(
+        os.Stdout,
+        option.WithColorEnabled(!*IsColorDisabled),
+        option.WithForegroundColor(color.FromRGB(218, 44, 128)),
+        option.WithBackgroundColor(red),
+        option.WithBold(),
+        option.WithItalic(),
+        option.WithUnderline(),
+    )
+    println("Output will be styled.")
+    println("Till next reset!")
+    colorized.Reset()
+
+    println("Normal text.")
+
+    styleSettings := style.Attribute{
+        Foreground: color.FromRGB(255, 188, 88),
+        Font:       []style.FontEffect{style.Bold},
     }
-
-    red, _ := colorize.Hex("#81BEF3")
-    style := colorize.Style{
-        Foreground: colorize.RGB(218, 44, 128),
-        Background: red,
-        Font: []colorize.FontEffect{
-            colorize.Bold,
-            colorize.Italic,
-            colorize.Underline,
-            colorize.CrossedOut,
-        },
-    }
-
     callback := colorized.SprintlnFunc()
-    fmt.Print(callback(style, "I am ", "stylish!"))
+    print(callback(styleSettings, "I am ", "stylish!"))
 
-    displayDirectColors()
+    printDirectColors()
 
-    style = colorize.Style{
-        Foreground: colorize.RGB(255, 188, 88),
-        Font:       []colorize.FontEffect{colorize.Bold},
-    }
-    colorized.Set(style)
-    colorized.DisableColor()
-    colorized.Println(style, "\nSkip coloring...")
-    colorized.EnableColor()
-    fmt.Println("\nOutput will be styled.\nTill next reset!")
+    colorized.ApplyStyle(style.Attribute{
+        Foreground: color.FromRGB(188, 181, 188),
+    })
+    println("\nSample colors in Hexadecimal and FromRGB")
     colorized.Reset()
 
     colorized.Println(
-        colorize.Style{
-            Foreground: colorize.RGB(188, 81, 188),
+        style.Attribute{
+            Foreground: color.FromRGB(188, 81, 188),
         },
-        "\nSample colors in Hexadecimal and RGB",
-        "\n====================================",
+        "====================================",
     )
-    fmt.Println(sampleColors(colorized))
+    println(sampleColors(colorized))
 }
 
-func displayDirectColors() {
-    fmt.Printf("%-41s  %-5s\n", colorize.Black("Text in Black!"), colorize.BlackB("Text on Black!"))
-    fmt.Printf("%-43s  %-5s\n", colorize.Blue("Deep Blue C!"), colorize.BlueB("Steep Clue B!"))
-    fmt.Printf("%-45s  %-5s\n", colorize.Cyan("Hi Cyan!"), colorize.CyanB("Hi There!"))
-    fmt.Printf("%-47s  %-5s\n", colorize.Gray("Gray logged text!"), colorize.GrayB("Thanks Gray!"))
-    fmt.Printf("%-43s  %-5s\n", colorize.Green("50 shades of Green!"), colorize.GreenB("A greenery sight!"))
-    fmt.Printf("%-45s  %-5s\n", colorize.Magenta("Go Magenta!"), colorize.MagentaB("I am there already."))
-    fmt.Printf("%-45s  %-5s\n", colorize.Orange("Orange is the new Black!"), colorize.OrangeB("Please set it back."))
-    fmt.Printf("%-45s  %-5s\n", colorize.Purple("The Purple hurdle!"), colorize.PurpleB("Would cause some curdle."))
-    fmt.Printf("%-43s  %-5s\n", colorize.Red("The thin Red light!"), colorize.RedB("A pleasant sight."))
-    fmt.Printf("%-47s  %-5s\n", colorize.White("Toward White!"), colorize.WhiteB("It's never been bright."))
-    fmt.Printf("%-45s  %-5s\n", colorize.Yellow("Hello Yellow!"), colorize.YellowB("Hello Hello!"))
+func printDirectColors() {
+    println(colorize.Black("Text in Black!"))
+    println(colorize.Blue("Deep Blue C!"))
+    println(colorize.Cyan("Hi Cyan!"))
+    println(colorize.Gray("Gray logged text!"))
+    println(colorize.Green("50 shades of Green!"))
+    println(colorize.Magenta("Go Magenta!"))
+    println(colorize.Orange("Orange is the new black!"))
+    println(colorize.Purple("The Purple hurdle!"))
+    println(colorize.Red("The thin Red light!"))
+    println(colorize.White("Twice White!"))
+    println(colorize.Yellow("Hello Yellow!"))
 }
 
 func sampleColors(colorized *colorize.Colorable) string {
     const columns = 10
-
-    var sample []string
-
+    sample := make([]string, 0)
     for colorIndex := 0; colorIndex <= 255; colorIndex++ {
         red := byte((colorIndex + 5) % 256)
         green := byte(colorIndex * 3 % 256)
         blue := byte(255 - colorIndex)
 
-        style := colorize.Style{
-            Foreground: colorize.RGB(255, 255, 255),
-            Background: colorize.RGB(red, green, blue),
+        styleSettings := style.Attribute{
+            Background: color.FromRGB(red, green, blue),
         }
         sample = append(
             sample,
-            getSampleContent(colorized, style),
+            getSampleContent(colorized, styleSettings),
             " ",
         )
 
@@ -162,9 +159,10 @@ func sampleColors(colorized *colorize.Colorable) string {
     return strings.Join(sample, "")
 }
 
-func getSampleContent(colorized *colorize.Colorable, style colorize.Style) string {
+func getSampleContent(colorized *colorize.Colorable, style style.Attribute) string {
+    colorized.ApplyStyle(style)
+
     return colorized.Sprintf(
-        style,
         " %-7s  %-13s",
         style.Background.Hex(),
         style.Background.RGB(),
@@ -190,8 +188,7 @@ The benchmarks were run against MacBook Pro with M1 chip.
 🤝 Contribution
 ---------------
 
-Please refer to
-the [`CONTRIBUTING.md`](https://github.com/architeacher/colorize/blob/master/CONTRIBUTING.md "Contribution") file.
+Please refer to the [`CONTRIBUTING.md`](https://github.com/architeacher/colorize/blob/master/CONTRIBUTING.md "Contribution") file.
 
 ### ⚓ Git Hooks
 
@@ -211,8 +208,7 @@ git config --local core.hooksPath .githooks
 🆓 LICENSE
 ----------
 
-Colorize is released under MIT license, please refer to
-the [`LICENSE.md`](https://github.com/architeacher/colorize/blob/master/LICENSE.md "License") file.
+Colorize is released under MIT license, please refer to the [`LICENSE.md`](https://github.com/architeacher/colorize/blob/master/LICENSE.md "License") file.
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Farchiteacher%2Fcolorize.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Farchiteacher%2Fcolorize?ref=badge_large "Dependencies")
 
@@ -220,7 +216,5 @@ Happy Coding
 🙂[![Analytics](http://www.google-analytics.com/__utm.gif?utmwv=4&utmn=869876874&utmac=UA-136526477-1&utmcs=ISO-8859-1&utmhn=github.com&utmdt=colorize&utmcn=1&utmr=0&utmp=/architeacher/colorize?utm_source=www.github.com&utm_campaign=colorize&utm_term=colorize&utm_content=colorize&utm_medium=repository&utmac=UA-136526477-1)]()
 
 [1]: https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit "ANSI Escape Sequenece"
-
 [2]: https://golang.org/dl/ "Download Golang"
-
 [3]: https://github.com/architeacher "Author"

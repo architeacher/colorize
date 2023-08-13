@@ -15,17 +15,13 @@ clean-linting: ## to clean generated linting files.
 .PHONY: format-check
 format-check: ## to check if the Go files are formatted correctly.
 	$(call printMessage,"🏃 Running code format check",$(INFO_CLR))
-	diff="$$($(GO_FMT) -d -e -l -s ${args} $(GO_FILES) 2>&1)"; \
-	if [ -n "$${diff}" ]; then \
-		echo "$(ERROR_CLR)Error, Please run 'make format-check args=-w' and commit the result:$(NO_CLR)"; \
-		echo "$${diff}"; \
-		exit 1; \
-	fi;
+	diff="$$($(GO_FMT) -d -e -l -s ${args} $(GO_FILES) | tee /dev/stderr)"; \
+	test -z "$${diff}" || (echo "${ERROR_CLR}Error, Please run 'make format-check args=-w' and commit the result:${NO_CLR}\n$${diff}" && exit 1)
 
 .PHONY: lint
 lint: $(LINTER_PROFILE_PATH) ## to run linter against Go files.
 	$(call printMessage,"🏃 Running linter",$(INFO_CLR))
-	$(eval CMD ?= "$(GO_LINT) run ${args} --out-format code-climate | jq 'map(.severity = (.severity // \"\"))' | tee $(LINTER_PROFILE) | jq -r '.[] | \"\(.location.path):\(.location.lines.begin) \(.description)\"'")
+	$(eval CMD ?= "$(GO_LINT) run ${args} --timeout 5m --out-format code-climate | jq 'map(.severity = (.severity // \"\"))' | tee $(LINTER_PROFILE) | jq -r '.[] | \"\(.location.path):\(.location.lines.begin) \(.description)\"'")
 	$(if $(filter $(CONTAINERIZE), true), \
 			${MAKE} lint-dockerized CMD=${CMD}, \
 	    $$(eval ${CMD}) 2>&1)
@@ -54,11 +50,7 @@ misspell: ## to run misspell.
 					-prune \
 					-type f \
 					-exec misspell "${args}" -error "${0}" {} /dev/null \;)"; \
-	if [ -n "$${diff}" ]; then \
-		echo "${ERROR_CLR}Error, Please run 'make misspell args=-w' and commit the result:${NO_CLR}"; \
-		echo "$${diff}"; \
-		exit 1; \
-	fi;
+  test -z "$${diff}" || (echo "${ERROR_CLR}Error, Please run 'make misspell args=-w' and commit the result:${NO_CLR}" && exit 1)
 
 # Simplified dead code detector. Used for skipping certain checks on unreachable code
 # (for instance, shift checks on arch-specific code).

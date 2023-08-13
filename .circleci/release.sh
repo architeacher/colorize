@@ -5,12 +5,11 @@ set -o nounset
 set -euo pipefail
 
 # curl -sL https://git.io/goreleaser | bash
-mkdir -p "${HOME}/.ssh/" && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" | sudo tee -a ~/.ssh/config
 
-version=$(cat ./.version)
-last_commit_message=$(git log -1 --pretty=%s)
+version="$(cat ./.versoin)"
+last_commit_message="$(git log -1 --pretty=%s)"
 
-if [ -n "${version}" ]; then
+test -n "${version}" && {
   echo "Create release: ${version}"
   curl -S "${GITHUB_API}/repos/${REPO_NAME}/${IMAGE_NAME}/releases" \
        -H "Accept: application/vnd.github.v3+json" \
@@ -23,4 +22,4 @@ if [ -n "${version}" ]; then
             "body": "${last_commit_message}"
           }
 REQUEST_BODY
-fi
+}

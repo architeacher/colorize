@@ -55,7 +55,7 @@ executors:
   docker:
     parameters:
       go:
-        default: "1.19"
+        default: "1.22"
         description: "The Go version."
         type: string
     docker:
@@ -81,7 +81,7 @@ jobs:
           condition:
             equal:
               - << parameters.linting >>
-              - true
+              - "true"
           steps:
             - checkout
             - run:
@@ -121,14 +121,14 @@ jobs:
           condition:
             equal:
               - << parameters.coverage >>
-              - true
+              - "true"
           steps:
             - checkout
             - when:
                 condition:
                   equal:
                     - << parameters.cache >>
-                    - true
+                    - "true"
                 steps:
                   - restore_cache:
                       keys:
@@ -154,7 +154,7 @@ jobs:
                 condition:
                   equal:
                     - << parameters.cache >>
-                    - true
+                    - "true"
                 steps:
                   - save_cache:
                       key: go-coverage-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}-{{ checksum "<< parameters.cache-file >>" }}-{{ .Revision }}
@@ -169,14 +169,14 @@ jobs:
           condition:
             equal:
               - << parameters.profiling >>
-              - true
+              - "true"
           steps:
             - checkout
             - when:
                 condition:
                   equal:
                     - << parameters.cache >>
-                    - true
+                    - "true"
                 steps:
                   - restore_cache:
                       keys:
@@ -206,7 +206,7 @@ jobs:
                 condition:
                   equal:
                     - << parameters.cache >>
-                    - true
+                    - "true"
                 steps:
                   - save_cache:
                       key: go-profiling-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}-{{ checksum "<< parameters.cache-file >>" }}-{{ .Revision }}
@@ -222,7 +222,7 @@ jobs:
           condition:
             equal:
               - << parameters.cache >>
-              - true
+              - "true"
           steps:
             - restore_cache:
                 keys:
@@ -240,7 +240,7 @@ jobs:
           condition:
             equal:
               - << parameters.cache >>
-              - true
+              - "true"
           steps:
             - save_cache:
                 key: go-build-cache-<< parameters.cache-key >>-<< parameters.go >>-{{ arch }}-{{ checksum "<< parameters.cache-file >>" }}-{{ .Revision }}
@@ -300,7 +300,7 @@ workflows:
             parameters:
               # Each major Go release is supported until there are two newer major releases. https://golang.org/doc/devel/release.html#policy
               # Tests are done against the last three major releases.
-              go: [ "1.19", "1.18", "1.17" ]
+              go: [ "1.22", "1.21", "1.20" ]
               os: [ docker, linux ]
       - coverage:
           name: "Coverage"
@@ -310,7 +310,7 @@ workflows:
           name: "Build on << matrix.os >> @ Go << matrix.go >>"
           matrix:
             parameters:
-              go: [ "1.19", "1.18", "1.17" ]
+              go: [ "1.22", "1.21", "1.20" ]
               os: [ docker, linux ]
           requires:
             - linting

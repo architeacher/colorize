@@ -1,25 +1,31 @@
 linters-settings:
   cyclop:
     max-complexity: 15
-  exhaustivestruct:
-    struct-patterns:
-      - '*.Style'
-  gomnd:
-    checks:
-      #      - argument
-      - assign
-      - case
-      - condition
-      #      - operation
-      - return
+  depguard:
+    rules:
+      main:
+        allow:
+          - $gostd
+          - github.com/architeacher/colorize
+        files:
+          - "*.go"
   forbidigo:
     forbid:
       - ^print.*$
+  mnd:
+    checks:
+#      - argument
+      - assign
+      - case
+      - condition
+#      - operation
+      - return
 
 linters:
   enable-all: true
   disable:
     - asasalint
+    - execinquery
     - exhaustruct
     - forcetypeassert
     - gochecknoglobals
@@ -27,9 +33,8 @@ linters:
     - ireturn
     - wrapcheck
 
-run:
-  concurrency: 15
-  skip-dirs:
+issues:
+  exclude-dirs:
     - .circleci
     - .github
     - .githooks
@@ -37,8 +42,16 @@ run:
     - .travis
     - assets
     - build
+
+run:
+  concurrency: 15
   tests: false
   timeout: 3m
 
 output:
-  format: tab
+  formats:
+    - format: json
+      path: stderr
+    - format: checkstyle
+      path: report.xml
+    - format: colored-line-number

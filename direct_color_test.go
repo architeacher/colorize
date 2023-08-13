@@ -1,7 +1,6 @@
 package colorize
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 
@@ -9,7 +8,9 @@ import (
 )
 
 func TestDirectColors(t *testing.T) {
-	testCases := []struct {
+	t.Parallel()
+
+	cases := []struct {
 		name         string
 		input        string
 		appliedStyle func(...interface{}) string
@@ -193,14 +194,15 @@ func TestDirectColors(t *testing.T) {
 		},
 	}
 
-	// Overriding the default variable to output to buffer.
-	colorable = NewColorable(&bytes.Buffer{})
+	for _, tc := range cases {
+		tc := tc
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			output := testCase.appliedStyle(testCase.input)
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-			assert.Equal(t, fmt.Sprintf("%q", testCase.expected), fmt.Sprintf("%q", output))
+			output := tc.appliedStyle(tc.input)
+
+			assert.Equal(t, fmt.Sprintf("%q", tc.expected), fmt.Sprintf("%q", output))
 		})
 	}
 }

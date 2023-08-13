@@ -103,7 +103,7 @@ INSTALLATION_BASE_PATH ?= /usr/local/bin
 GO_GENERATED_DIR = ${ARTIFACTS_DIR}/go
 
 ## 🐳 Should use containers locally to do build, lint, ... etc.
-CONTAINERIZE ?= false
+CONTAINERIZE ?= true
 
 # Tests
 ## Set tests path.

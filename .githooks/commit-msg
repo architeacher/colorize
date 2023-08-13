@@ -13,38 +13,40 @@
 # hook is more suited to it.
 #
 # SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
-# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+# grep -qs "^$SOB" "${1}" || echo "$SOB" >> "${1}"
 
 # This example catches duplicate Signed-off-by lines.
 
-test "" = "$(grep '^Signed-off-by: ' "$1" |
+commit_message="${1}"
+
+test "" = "$(grep '^Signed-off-by: ' "${1}" |
 	 sort | uniq -c | sed -e '/^[ 	]*1[ 	]/d')" || {
 	echo >&2 Duplicate Signed-off-by lines.
 	exit 1
 }
 
-if grep -q -i -e "WIP" -e "work in progress" "$1"; then
+test "" = "$(grep -q -i -e "WIP" -e "work in progress" "${1}")" && {
     read -n 1 -r -p "You're about to add a WIP commit, do you want to run the CI? [y|n] " < /dev/tty
     echo
     if echo "${REPLY}" | grep -E '^[Nn]$' > /dev/null; then
-        echo "[Skipping CI]" >> "$1"
+        echo "[Skipping CI]" >> "${1}"
     fi
-fi
+}
 
-checkCommitMessage() {
+check_commit_message() {
   local pattern="${1}" \
         commit_message_file="${2}" \
         question="${3}" \
         skip_message="${4}"
 
-  if ! grep -qE "${pattern}" "${commit_message_file}"; then
+  ! grep -qE "${pattern}" "${commit_message_file}" && {
       read -n 1 -r -p "${pattern}> ${question} " < /dev/tty
       echo
       if echo "${REPLY}" | grep -E '^[Nn]$' > /dev/null; then
           echo "${skip_message}"
           exit 1
       fi
-  fi
+  }
 }
 
 # See: https://stackoverflow.com/a/73171901/810782
@@ -58,27 +60,27 @@ else
   pattern+="(?:[\w ,'.\`:-]+)(?<=\v\v){0,2}(?:[\w\s,'.\`\[\]-]+)(?:(?<=\v\v)(?:(?:[\w\s-]+): (?:[\w -\`]+))+|$))"
 fi
 
-checkCommitMessage "${pattern}" \
-  "${1}" \
+check_commit_message "${pattern}" \
+  "${commit_message}" \
   "You're about to commit that's not matching conventional commits (https://www.conventionalcommits.org/en/v1.0.0/) style, do you want to continue? [y|n]" \
   "Skipping commit message's format check."
 
-checkCommitMessage ".*:[a-z0-9_-]+:.*" \
-  "${1}" \
+check_commit_message ".*:[a-z0-9_-]+:.*" \
+  "${commit_message}" \
   "You're about to commit without an icon, do you want to continue? [y|n]" \
   "Skipping commit message's icon check."
 
-checkCommitMessage "\.$" \
-  "${1}" \
+check_commit_message "\.$" \
+  "${commit_message}" \
   "You're about to commit without ending with full stop, do you want to continue? [y|n]" \
   "Skipping commit message's ending format check."
 
-checkCommitMessage ".*\[(major|minor|patch)\].*" \
-  "${1}" \
+check_commit_message ".*\[(major|minor|patch)\].*" \
+  "${commit_message}" \
   "You're about to commit without release type [major|minor|patch], do you want to continue? [y|n]" \
   "Skipping commit message's release check."
 
-checkCommitMessage ".*Signed-off-by: .*" \
-  "${1}" \
+check_commit_message ".*Signed-off-by: .*" \
+  "${commit_message}" \
   "You're about to commit a non-signed commit, do you want to continue? [y|n]" \
   "Skipping commit message's signage check."
