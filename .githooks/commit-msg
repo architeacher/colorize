@@ -13,21 +13,39 @@
 # hook is more suited to it.
 #
 # SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
-# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+# grep -qs "^$SOB" "${1}" || echo "$SOB" >> "${1}"
 
 # This example catches duplicate Signed-off-by lines.
 
-test "" = "$(grep '^Signed-off-by: ' "$1" |
+test "" = "$(grep '^Signed-off-by: ' "${1}" |
 	 sort | uniq -c | sed -e '/^[ 	]*1[ 	]/d')" || {
 	echo >&2 Duplicate Signed-off-by lines.
 	exit 1
 }
 
-if grep -q -i -e "WIP" -e "work in progress" "$1"; then
+test "" = "$(! grep -qE '.*Signed-off-by:\s.*' "${1}")" && {
+	read -n 1 -r -p "You're about to commit a non-signed commit, do you want to continue? [y|n] " < /dev/tty
+  echo
+  if echo "${REPLY}" | grep -E '^[Nn]$' > /dev/null; then
+      echo "Skipping commit message's signage check."
+      exit 1
+  fi
+}
+
+if ! grep -qE ".*Signed-off-by:\s.*" "${1}"; then
+    read -n 1 -r -p "You're about to commit a non-signed commit, do you want to continue? [y|n] " < /dev/tty
+    echo
+    if echo "${REPLY}" | grep -E '^[Nn]$' > /dev/null; then
+        echo "Skipping commit message's signage check."
+        exit 1
+    fi
+fi
+
+if grep -q -i -e "WIP" -e "work in progress" "${1}"; then
     read -n 1 -r -p "You're about to add a WIP commit, do you want to run the CI? [y|n] " < /dev/tty
     echo
     if echo "${REPLY}" | grep -E '^[Nn]$' > /dev/null; then
-        echo "[Skipping CI]" >> "$1"
+        echo "[Skipping CI]" >> "${1}"
     fi
 fi
 

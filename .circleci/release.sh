@@ -5,10 +5,9 @@ set -o nounset
 set -euo pipefail
 
 # curl -sL https://git.io/goreleaser | bash
-mkdir -p "${HOME}/.ssh/" && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" | sudo tee -a ~/.ssh/config
 
-version=$(cat ./.version)
-last_commit_message=$(git log -1 --pretty=%s)
+version="$(cat ./.versoin)"
+last_commit_message="$(git log -1 --pretty=%s)"
 
 if [ -n "${version}" ]; then
   echo "Create release: ${version}"

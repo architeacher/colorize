@@ -41,6 +41,6 @@
 
 ## v1.3.0
 
-- Adding support for direct background colors.
+- Adding support for options initialization and direct background colors.
 - Refactoring
 - Changing Circleci configurations.

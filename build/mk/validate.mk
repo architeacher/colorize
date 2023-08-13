@@ -25,7 +25,7 @@ format-check: ## to check if the Go files are formatted correctly.
 .PHONY: lint
 lint: $(LINTER_PROFILE_PATH) ## to run linter against Go files.
 	$(call printMessage,"🏃 Running linter",$(INFO_CLR))
-	$(eval CMD ?= "$(GO_LINT) run ${args} --out-format code-climate | jq 'map(.severity = (.severity // \"\"))' | tee $(LINTER_PROFILE) | jq -r '.[] | \"\(.location.path):\(.location.lines.begin) \(.description)\"'")
+	$(eval CMD ?= "$(GO_LINT) run ${args} --deadline 5m --out-format code-climate | jq 'map(.severity = (.severity // \"\"))' | tee $(LINTER_PROFILE) | jq -r '.[] | \"\(.location.path):\(.location.lines.begin) \(.description)\"'")
 	$(if $(filter $(CONTAINERIZE), true), \
 			${MAKE} lint-dockerized CMD=${CMD}, \
 	    $$(eval ${CMD}) 2>&1)

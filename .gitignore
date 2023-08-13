@@ -26,4 +26,5 @@
 !.dockerignore
 .env
 .version
+.go
 vendor/

@@ -55,7 +55,7 @@ executors:
   docker:
     parameters:
       go:
-        default: "1.19"
+        default: "1.21"
         description: "The Go version."
         type: string
     docker:
@@ -300,7 +300,7 @@ workflows:
             parameters:
               # Each major Go release is supported until there are two newer major releases. https://golang.org/doc/devel/release.html#policy
               # Tests are done against the last three major releases.
-              go: [ "1.19", "1.18", "1.17" ]
+              go: [ "1.21", "1.20", "1.19" ]
               os: [ docker, linux ]
       - coverage:
           name: "Coverage"
@@ -310,7 +310,7 @@ workflows:
           name: "Build on << matrix.os >> @ Go << matrix.go >>"
           matrix:
             parameters:
-              go: [ "1.19", "1.18", "1.17" ]
+              go: [ "1.21", "1.20", "1.19" ]
               os: [ docker, linux ]
           requires:
             - linting

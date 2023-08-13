@@ -9,11 +9,11 @@ version_file="./.version"
 touch "${version_file}"
 
 versionize() {
-    local commit_message="${1}"
-    local major="${2}"
-    local minor="${3}"
-    local patch="${4}"
-    local version_file="${5}"
+    local commit_message="${1}" \
+          major="${2}" \
+          minor="${3}" \
+          patch="${4}" \
+          version_file="${5}"
 
     if echo "${commit_message}" | grep -iqE "\[major\]"; then
       major=$((major+1))
